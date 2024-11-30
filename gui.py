@@ -6,6 +6,7 @@ from PIL import Image, ImageTk
 from PIL.ImageFile import ImageFile
 
 import config
+import colors
 
 window = Tk.Tk()
 window.geometry(f"{config.get("window_width")}x{config.get("window_height")}")
@@ -47,6 +48,7 @@ class Tileset:
 card_tileset = Tileset(Image.open("Assets/cards.png"),config.get("card_width"),config.get("card_height"))
 
 
-img = ImageTk.PhotoImage(card_tileset.get(0,1))
+img = ImageTk.PhotoImage(colors.shift(card_tileset.get(0,1),78))
+
 
 c.create_image(300,300,image=img)
