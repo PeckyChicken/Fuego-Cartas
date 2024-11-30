@@ -1,5 +1,5 @@
-import GUI
+import gui
 
-GUI.RotatableRectangle(GUI.Point(300,300),50,100,45,fill="white")
+gui.RotatableRectangle(gui.Point(300,300),50,100,45,fill="white")
 
-GUI.window.mainloop()
+gui.window.mainloop()
