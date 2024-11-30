@@ -50,11 +50,16 @@ def hsv_to_rgb(hsv):
     return rgb.astype('uint8')
 
 
-def shift(image,hue):
+def shift(image,hue,saturation,value):
     hue = (180-hue)/360.0
+    saturation = (180-saturation)/360.0
+
     arr = np.array(image)
     hsv=rgb_to_hsv(arr)
     hsv[...,0]=hue
+    hsv[...,1]=saturation
+    hsv[...,2]=value
+
     rgb=hsv_to_rgb(hsv)
     new_image = Image.fromarray(rgb, 'RGBA')
     return new_image
