@@ -1,7 +1,10 @@
+import math
 import tkinter as Tk
 from typing import Self
+
+from PIL import Image, ImageTk
+
 import config
-import math
 
 window = Tk.Tk()
 window.geometry(f"{config.get("window_width")}x{config.get("window_height")}")
@@ -24,3 +27,8 @@ class Point:
         dy = abs(self.y-point.y)
         distance = math.sqrt(dx**2+dy**2)
         return distance
+
+card_tileset = Image.open("Assets/cards.png")
+img = ImageTk.PhotoImage(card_tileset)
+
+c.create_image(50,50,image=img)
