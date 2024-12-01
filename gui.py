@@ -35,8 +35,14 @@ class Tileset:
         self.image: ImageFile = image
         self.tile_width: int = tile_width
         self.tile_height: int = tile_height
-    
+        pixel_width, pixel_height = image.size
+        self.width = pixel_width/tile_width
+        self.height = pixel_height/tile_height
+
     def get(self,x:int,y:int):
+        if not (0 <= x < self.width) or not(0 <= y < self.height):
+            return None
+        
         crop_left = self.tile_width * x
         crop_right = self.tile_width * (x+1)
         crop_upper = self.tile_height * y
@@ -46,9 +52,3 @@ class Tileset:
         return self.image.crop((crop_left,crop_upper,crop_right,crop_lower))     
 
 card_tileset = Tileset(Image.open("Assets/cards.png"),config.get("card_width"),config.get("card_height"))
-
-
-img = ImageTk.PhotoImage(colors.shift(card_tileset.get(0,1),78))
-
-
-c.create_image(300,300,image=img)
