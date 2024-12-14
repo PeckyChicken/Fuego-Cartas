@@ -6,7 +6,7 @@ from PIL import Image, ImageTk
 from PIL.ImageFile import ImageFile
 
 import config
-import image
+import imaging
 
 window = Tk.Tk()
 window.geometry(f"{config.get("window_width")}x{config.get("window_height")}")

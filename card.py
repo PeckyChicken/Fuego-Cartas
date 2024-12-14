@@ -1,5 +1,5 @@
 import gui
-import image
+import imaging
 from PIL import Image,ImageTk
 
 class Card:
@@ -8,9 +8,7 @@ class Card:
 
         tileset_coords = gui.card_tileset.index_to_coords(value)
         print(gui.card_tileset.get(*tileset_coords))
-        self.img = image.shift(gui.card_tileset.get(*tileset_coords),color)
+        self.img = imaging.shift(gui.card_tileset.get(*tileset_coords),color)
         self.id = gui.c.create_image(300,300,image=ImageTk.PhotoImage(self.img),anchor="nw")
         print(tileset_coords,self.img,self.id)
 
-    def set_scale(self,scale):
-        self.img.scale
