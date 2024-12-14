@@ -60,3 +60,9 @@ def shift(image,hue):
     rgb=hsv_to_rgb(hsv)
     new_image = Image.fromarray(rgb, 'RGBA')
     return new_image
+
+def scale(image:Image.Image,scale):
+    width,height = image.size
+    width *= scale
+    height *= scale
+    return image.resize((width,height))
