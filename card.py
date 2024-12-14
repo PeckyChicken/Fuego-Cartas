@@ -8,7 +8,7 @@ class Card:
 
         tileset_coords = gui.card_tileset.index_to_coords(value)
         print(gui.card_tileset.get(*tileset_coords))
-        self.img = imaging.shift(gui.card_tileset.get(*tileset_coords),color)
-        self.id = gui.c.create_image(300,300,image=ImageTk.PhotoImage(self.img),anchor="nw")
-        print(tileset_coords,self.img,self.id)
+        self.image = ImageTk.PhotoImage(imaging.shift(gui.card_tileset.get(*tileset_coords),color))
+        self.id = gui.c.create_image(300,300,image=(self.image),anchor="nw")
+        print(tileset_coords,self.image,self.id)
 
