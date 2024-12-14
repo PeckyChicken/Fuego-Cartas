@@ -2,8 +2,10 @@
 #https://stackoverflow.com/questions/7274221/changing-image-hue-with-python-pil
 
 from math import floor
-from PIL import Image
+
 import numpy as np
+from PIL import Image
+
 
 def rgb_to_hsv(rgb):
     # Translated from source of colorsys.rgb_to_hsv
