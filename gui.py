@@ -41,14 +41,18 @@ class Tileset:
 
     def get(self,x:int,y:int):
         if not (0 <= x < self.width) or not(0 <= y < self.height):
+            raise IndexError(f"{x=}, {y=} is out of range of Tileset.")
             return None
         
         crop_left = self.tile_width * x
         crop_right = self.tile_width * (x+1)
         crop_upper = self.tile_height * y
         crop_lower = self.tile_height * (y+1)
-        print(crop_left,crop_right,crop_upper,crop_lower)
 
-        return self.image.crop((crop_left,crop_upper,crop_right,crop_lower))     
+        return self.image.crop((crop_left,crop_upper,crop_right,crop_lower))
+
+    def index_to_coords(self,index):
+        y,x = divmod(index,self.width)
+        return x,y
 
 card_tileset = Tileset(Image.open("Assets/cards.png"),config.get("card_width"),config.get("card_height"))
