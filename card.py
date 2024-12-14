@@ -1,15 +1,16 @@
 import gui
-import colors
+import image
 from PIL import Image,ImageTk
 
 class Card:
     def __init__(self,color:int,value:int):
+        gui.c.create_rectangle(300,300,502,603,width=5)
+
         tileset_coords = gui.card_tileset.index_to_coords(value)
         print(gui.card_tileset.get(*tileset_coords))
-        self.img = ImageTk.PhotoImage(colors.shift(gui.card_tileset.get(*tileset_coords),color))
-        gui.c.create_rectangle(300,300,502,603,width=5)
-        self.id = gui.c.create_image(300,300,image=self.img)
+        self.img = image.shift(gui.card_tileset.get(*tileset_coords),color)
+        self.id = gui.c.create_image(300,300,image=ImageTk.PhotoImage(self.img),anchor="nw")
         print(tileset_coords,self.img,self.id)
 
-img = ImageTk.PhotoImage(colors.shift(gui.card_tileset.get(0,0),48))
-id1 = gui.c.create_image(200,200,image=img)
+    def set_scale(self,scale):
+        self.img.scale
