@@ -1,6 +1,7 @@
 #This code was taken from
 #https://stackoverflow.com/questions/7274221/changing-image-hue-with-python-pil
 
+from math import floor
 from PIL import Image
 import numpy as np
 
@@ -63,6 +64,12 @@ def shift(image,hue):
 
 def scale(image:Image.Image,scale):
     width,height = image.size
+    print(f"{width=}, {height=}")
+    print("Scaling: ")
     width *= scale
     height *= scale
-    return image.resize((width,height))
+    print(f"{width=}, {height=}")
+    
+    width = floor(width)
+    height = floor(height)
+    return image.resize((width,height),Image.Resampling.NEAREST)
