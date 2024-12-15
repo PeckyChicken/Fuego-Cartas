@@ -24,18 +24,9 @@ class Card:
     def scale(self,scale):
         self.image = imaging.scale(self.image,scale)
         self.redraw()
-
-def draw_hand_space():
-    coords = config.get("hand_coords")
-    width = config.get("hand_max_width")
-    height = config.get("card_height")
-    scale = config.get("hand_card_scale")
-
-    x1 = coords[0]-width/2
-    y1 = coords[1]-(height/2)*scale
-    x2 = coords[0]+width/2
-    y2 = coords[1]+(height/2)*scale
-
-    gui.c.create_rectangle(x1,y1,x2,y2,width=5)
-
-draw_hand_space()
+    
+    def move_to(self,x,y):
+        width,height = self.image.size
+        x -= width/2
+        y -= height/2
+        gui.c.moveto(self.id,x,y)
