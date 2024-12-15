@@ -4,6 +4,8 @@ from typing import Any
 data = {}
 with open("config.cfg") as f:
     for x in f.readlines():
+        if x.strip() == "" or x.strip().startswith("#"):
+            continue
         datum = x.split("=")
         data[datum[0].strip()] = datum[1].strip()
 
