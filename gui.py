@@ -11,6 +11,7 @@ import imaging
 window = Tk.Tk()
 window.geometry(f"{config.get("window_width")}x{config.get("window_height")}")
 window.title("Hexo")
+window.attributes('-fullscreen',config.get("fullscreen"))
 
 c = Tk.Canvas(window,width=config.get("window_width"),height=config.get("window_height"),bg="#77DD77")
 c.pack(padx=0,pady=0)
@@ -56,3 +57,5 @@ class Tileset:
         return x,y
 
 card_tileset = Tileset(Image.open("Assets/cards.png"),config.get("card_width"),config.get("card_height"))
+
+window.bind("<Escape>",lambda _: window.destroy())
