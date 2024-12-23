@@ -9,8 +9,11 @@ class Card:
     def __init__(self,color:int,value:int,x=300,y=300):
         self.tileset_coords = gui.card_tileset.index_to_coords(value)
         self.color = color
-
-        self.image = imaging.shift(gui.card_tileset.get(*self.tileset_coords),color)
+        if value in config.get("wild_cards"):
+            self.color = 0
+            self.image = gui.card_tileset.get(*self.tileset_coords)
+        else:
+            self.image = imaging.shift(gui.card_tileset.get(*self.tileset_coords),self.color)
 
         self.id = [None]
         self.scale_value = 1
