@@ -1,3 +1,4 @@
+from typing import Self
 from PIL import Image, ImageTk
 
 import config
@@ -9,6 +10,7 @@ class Card:
     def __init__(self,color:int,value:int,x=300,y=300):
         self.tileset_coords = gui.card_tileset.index_to_coords(value)
         self.color = color
+        self.value = value
         if value in config.get("wild_cards"):
             self.color = 0
             self.image = gui.card_tileset.get(*self.tileset_coords)
@@ -29,13 +31,7 @@ class Card:
         self._photo_image = ImageTk.PhotoImage(self.image)
         self.id[0] = gui.c.create_image(self.x,self.y,image=self._photo_image,anchor="nw")
 
-
         self.id[1] = gui.c.create_text(*self.get_text_coords(self.x,self.y),font=BOLD,text=self.hex_code,fill="white")
-
-    def findXCenter(self, canvas, item):
-        coords = canvas.bbox(item)
-        xOffset = (self.windowWidth / 2) - ((coords[2] - coords[0]) / 2)
-        return xOffset
     
     def get_text_coords(self,x,y):
         text_x, text_y = config.get("TEXT_PLACEMENT")
@@ -67,3 +63,29 @@ class Card:
         gui.c.moveto(self.id[0],x,y)
         
         gui.c.moveto(self.id[1],*self.get_text_coords(x,y))
+    
+    def __lt__(self,other:Self):
+        if self.value == other.value:
+            return self.color < other.color
+        return self.value < other.value
+    
+    def __gt__(self,other:Self):
+        if self.value == other.value:
+            return self.color > other.color
+        return self.value > other.value
+
+    def __eq__(self,other:Self):
+        return self.value == other.value and self.color == other.color
+
+    def __ne__(self,other:Self):
+        return not(self == other)
+    
+    def __ge__(self,other:Self):
+        if self.value == other.value:
+            return self.color >= other.color
+        return self.value >= other.value
+    
+    def __le__(self,other:Self):
+        if self.value == other.value:
+            return self.color <= other.color
+        return self.value <= other.value
