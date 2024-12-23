@@ -1,11 +1,12 @@
 from typing import Self
+
 from PIL import Image, ImageTk
 
 import config
 import gui
 import imaging
 
-BOLD = gui.font.Font(family="Cascadia Mono SemiBold", size=config.get("text_size"), weight="bold")
+BOLD = gui.font.Font(family="Lucida Console", size=config.get("text_size"), weight="bold")
 class Card:
     def __init__(self,color:int,value:int,x=300,y=300):
         self.tileset_coords = gui.card_tileset.index_to_coords(value)
@@ -24,6 +25,9 @@ class Card:
         self.x = x
         self.y = y
         self.redraw()
+        _w: int = config.get("card_width")
+        _h: int = config.get("card_height")
+        self.bounding_box = (x,y,x+_w,y+_h)
 
     def redraw(self):
         for item in self.id:
