@@ -11,6 +11,7 @@ class Hand:
 
         self.draw_space()
         self.hand = hand
+        self.hand_ids= []
 
     
     def draw_space(self):
@@ -21,5 +22,13 @@ class Hand:
         self.id = gui.c.create_rectangle(x1,y1,x2,y2,width=5)
 
     def draw_hand(self):
-        ...
-        
+        hand_size = len(self.hand)
+        middle = self.coords[0]
+        overlap = config.get("card_overlap")
+        offset = config.get("card_width") * (hand_size-1)/4*overlap
+        draw_start = middle - offset
+        for index,card in enumerate(self.hand):
+            x = draw_start + index*config.get("card_width")/2 * overlap
+            card.move_to(x,self.coords[1])
+            card.scale(self.scale/card.scale_value)
+
