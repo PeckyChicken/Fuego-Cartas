@@ -9,39 +9,25 @@ import imaging
 BOLD = gui.font.Font(family="Lucida Console", size=config.get("text_size"), weight="bold")
 class Card:
     def __init__(self,color:int,value:int,x=300,y=300):
-        self.tileset_coords = gui.card_tileset.index_to_coords(value)
-        self.color = color
-        self.value = value
-        if value in config.get("wild_cards"):
-            self.color = 0
-            self.image = gui.card_tileset.get(*self.tileset_coords)
-            self.hex_code = ""
-        else:
-            self.image = imaging.shift(gui.card_tileset.get(*self.tileset_coords),self.color)
-            self.hex_code = imaging.rgb_to_hex(*imaging.red_shift(color))
+        self._get_image(color, value)
 
-        self.id = [None,None]
-        self.scale_value = 1
-        self.x = x
-        self.y = y
-        self.redraw()
-        _w: int = config.get("card_width")
-        _h: int = config.get("card_height")
-        self.bounding_box = (x,y,x+_w,y+_h)
+        self._initial_draw(x, y)
+
+        self.highlighted = False
 
     def redraw(self):
         for item in self.id:
             gui.c.delete(item)
         self._photo_image = ImageTk.PhotoImage(self.image)
-        self.id[0] = gui.c.create_image(self.x,self.y,image=self._photo_image,anchor="nw")
+        self.id[0] = gui.c.create_image(self.x-self.width/2,self.y-self.height/2,image=self._photo_image,anchor="nw")
 
         self.id[1] = gui.c.create_text(*self.get_text_coords(self.x,self.y),font=BOLD,text=self.hex_code,fill="white")
     
     def get_text_coords(self,x,y):
         text_x, text_y = config.get("TEXT_PLACEMENT")
 
-        text_x *= self.size()[0]
-        text_y *= self.size()[1]
+        text_x *= self.width
+        text_y *= self.height
         text_x += x
         text_y += y
 
@@ -57,17 +43,64 @@ class Card:
         self.image = imaging.scale(self.image,scale)
         self.redraw()
         self.scale_value = scale
+
+        self.width *= scale
+        self.height *= scale
+
+        self.bounding_box = (self.x,self.y,self.x+self.width,self.y+self.height)
     
     def move_to(self,x,y):
-        width,height = self.size()
-        x -= width/2
-        y -= height/2
+
         self.x = x
         self.y = y
+        x -= self.width/2
+        y -= self.height/2
         gui.c.moveto(self.id[0],x,y)
-        
         gui.c.moveto(self.id[1],*self.get_text_coords(x,y))
+
+        self.bounding_box = (x,y,x+self.width,y+self.height)
+
     
+    def highlight(self):
+        if not self.highlighted:
+            x = self.x
+            y = self.y - config.get("highlight_movement")
+            self.move_to(x,y)
+            self.highlighted = True
+
+    def dehighlight(self):
+        if self.highlighted:
+            x = self.x
+            y = self.y + config.get("highlight_movement")
+            self.move_to(x,y)
+            self.highlighted = False
+
+    def _get_image(self, color, value):
+        self.tileset_coords = gui.card_tileset.index_to_coords(value)
+        self.color = color
+        self.value = value
+        if value in config.get("wild_cards"):
+            self.color = 0
+            self.image = gui.card_tileset.get(*self.tileset_coords)
+            self.hex_code = ""
+        else:
+            self.image = imaging.shift(gui.card_tileset.get(*self.tileset_coords),self.color)
+            self.hex_code = imaging.rgb_to_hex(*imaging.red_shift(color))
+
+    def _initial_draw(self, x, y):
+        self.id = [None,None]
+        self.scale_value = 1
+
+        self.width: int = config.get("card_width")
+        self.height: int = config.get("card_height")
+        
+        self.x = x + self.width/2
+        self.y = y + self.height/2
+
+        self.bounding_box = (x,y,x+self.width,y+self.height)
+
+        self.redraw()
+
     def __lt__(self,other:Self):
         if self.value == other.value:
             return self.color < other.color
