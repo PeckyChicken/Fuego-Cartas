@@ -89,11 +89,8 @@ def shift(image,hue):
 
 def scale(image:Image.Image,scale):
     width,height = image.size
-    print(f"{width=}, {height=}")
-    print("Scaling: ")
     width *= scale
     height *= scale
-    print(f"{width=}, {height=}")
     
     width = floor(width)
     height = floor(height)
