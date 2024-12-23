@@ -1,5 +1,6 @@
 import math
 import tkinter as Tk
+from tkinter import font
 from typing import Self
 
 from PIL import Image, ImageTk

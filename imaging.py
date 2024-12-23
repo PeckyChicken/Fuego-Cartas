@@ -52,16 +52,39 @@ def hsv_to_rgb(hsv):
     rgb[..., 2] = np.select(conditions, [v, p, t, v, v, q], default=p)
     return rgb.astype('uint8')
 
+def rgb_to_hex(r,g,b):
+    return f"#{r:02x}{g:02x}{b:02x}".upper()
+
+def red_shift(hue):
+    # Define pure red color in RGB
+    red_rgb = np.array([255, 0, 0, 255], dtype=np.uint8)  # Including alpha channel
+    
+    # Convert RGB to HSV
+    red_hsv = rgb_to_hsv(red_rgb[np.newaxis, np.newaxis, :])  # Expand dims for compatibility
+    
+    # Apply the hue shift
+    red_hsv[0, 0, 0] = (red_hsv[0, 0, 0] + hue / 360.0) % 1.0
+    
+    # Convert back to RGB
+    shifted_rgb = hsv_to_rgb(red_hsv)[0, 0, :3]  # Remove alpha channel for RGB
+    
+    # Convert RGB to hex
+    r, g, b = shifted_rgb
+    return r, g, b
 
 def shift(image,hue):
     hue = hue/360.0
 
     arr = np.array(image)
+
     hsv=rgb_to_hsv(arr)
     hsv[...,0]=hue
 
     rgb=hsv_to_rgb(hsv)
     new_image = Image.fromarray(rgb, 'RGBA')
+
+    hsv[...,0]=hue
+
     return new_image
 
 def scale(image:Image.Image,scale):
