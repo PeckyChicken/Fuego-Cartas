@@ -14,6 +14,7 @@ class Card:
         self._initial_draw(x, y)
 
         self.highlighted = False
+        self.motion = False
 
     def redraw(self):
         for item in self.id:
@@ -60,19 +61,42 @@ class Card:
 
         self.bounding_box = (x,y,x+self.width,y+self.height)
 
+    def smooth_move_to(self,x,y,ms,_frame=0):
+        self.motion = True
+
+        dx = x - self.x
+        dy = y - self.y
+        frames = ms/1000*config.get("fps") - _frame
+        move_x = dx/frames
+        move_y = dy/frames
+        gui.c.move(self.id[0],move_x,move_y)
+        gui.c.move(self.id[1],move_x,move_y)
+
+        self.x += move_x
+        self.y += move_y
+        if frames > _frame:
+            gui.window.after(1000//config.get("fps"), lambda: self.smooth_move_to(x,y,ms,_frame+1))
+            return
+        
+        self.motion = False
+
     
     def highlight(self):
+        if self.motion:
+            return
         if not self.highlighted:
             x = self.x
             y = self.y - config.get("highlight_movement")
-            self.move_to(x,y)
+            self.smooth_move_to(x,y,100)
             self.highlighted = True
 
     def dehighlight(self):
+        if self.motion:
+            return
         if self.highlighted:
             x = self.x
             y = self.y + config.get("highlight_movement")
-            self.move_to(x,y)
+            self.smooth_move_to(x,y,100)
             self.highlighted = False
 
     def _get_image(self, color, value):
