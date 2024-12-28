@@ -8,7 +8,6 @@ import imaging
 
 BOLD = gui.font.Font(family="Lucida Console", size=config.get("text_size"), weight="bold")
 class Card:
-    DRAGGING = False
     def __init__(self,color:int,value:int,x=300,y=300):
         self._get_image(color, value)
 
@@ -16,8 +15,6 @@ class Card:
 
         self.highlighted = False
         self.motion = False
-        self.DRAGGING = False
-        self.self_dragged = False
 
     def redraw(self):
         for item in self.id:
@@ -77,7 +74,6 @@ class Card:
 
         self.x += move_x
         self.y += move_y
-
         if frames > _frame:
             gui.window.after(1000//config.get("fps"), lambda: self.smooth_move_to(x,y,ms,_frame+1))
             return
