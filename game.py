@@ -48,40 +48,16 @@ def remove_duplicate_highlights(hand_cards: list[card.Card]):
             highlights += 1
     return highlights
 
-
-
 def game_loop(delta):
-    
     for hand_card in player_hand.hand:
-        if card.Card.DRAGGING:
-            if not hand_card.self_dragged:
-                continue
-            if mouse.clicked:
-                drag(hand_card)
-                continue
-            else:
-                hand_card.self_dragged = False
-                card.Card.DRAGGING = False
-            
         if mouse.inside(hand_card.bounding_box):
-            if mouse.clicked and not card.Card.DRAGGING:
-                hand_card.dehighlight()
-                drag(hand_card)
-            else:
-                check_for_highlight(hand_card)
+            check_for_highlight(hand_card)
         else:
             if hand_card.highlighted:
                 hand_card.dehighlight()
     
 
     gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
-
-def drag(hand_card: card.Card):
-    card.Card.DRAGGING = True
-    hand_card.self_dragged = True
-    if not hand_card.motion:
-        hand_card.move_to(mouse.x,mouse.y)
-
 
 def check_for_highlight(hand_card):
     highlights = 0
