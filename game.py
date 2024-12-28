@@ -40,7 +40,6 @@ def mouse_release(event):
 
 def remove_duplicate_highlights(hand_cards: list[card.Card]):
     highlights = 0
-    #Search backward through the list to ensure the topmost card gets selected
     for hand_card in hand_cards:
         if hand_card.highlighted:
             if highlights:
@@ -59,11 +58,12 @@ def game_loop(delta):
 
     gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
 
-def check_for_highlight(hand_card):
-    highlights = 0
-    if not hand_card.highlighted and highlights == 0:
+def check_for_highlight(hand_card:card.Card):
+    if (not hand_card.highlighted) and card.Card.HIGHLIGHTS == 0:
         hand_card.highlight()
-    highlights = remove_duplicate_highlights(player_hand.hand)
+    
+    card.Card.HIGHLIGHTS = remove_duplicate_highlights(player_hand.hand)
+    
 
 gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
 

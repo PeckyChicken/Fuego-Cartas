@@ -8,6 +8,8 @@ import imaging
 
 BOLD = gui.font.Font(family="Lucida Console", size=config.get("text_size"), weight="bold")
 class Card:
+    HIGHLIGHTS = 0
+    
     def __init__(self,color:int,value:int,x=300,y=300):
         self._get_image(color, value)
 
@@ -85,6 +87,7 @@ class Card:
         if self.motion:
             return
         if not self.highlighted:
+            self.HIGHLIGHTS += 1
             x = self.x
             y = self.y - config.get("highlight_movement")
             self.smooth_move_to(x,y,100)
@@ -94,6 +97,7 @@ class Card:
         if self.motion:
             return
         if self.highlighted:
+            self.HIGHLIGHTS -= 1
             x = self.x
             y = self.y + config.get("highlight_movement")
             self.smooth_move_to(x,y,100)
