@@ -11,7 +11,7 @@ import imaging
 
 window = Tk.Tk()
 window.geometry(f"{config.get("window_width")}x{config.get("window_height")}")
-window.title("Hexo")
+window.title("Fuego Cartas")
 window.attributes('-fullscreen',config.get("fullscreen"))
 
 c = Tk.Canvas(window,width=config.get("window_width"),height=config.get("window_height"),bg="#77DD77")
