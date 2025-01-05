@@ -6,11 +6,14 @@ import config
 import gui
 import hand
 
-temp_hand = [card.Card(random.randint(0,359),random.randint(0,14)) for _ in range(8)]
-temp_hand.sort()
+player_hand = hand.Hand((config.get("window_width")/2,config.get("hand_y")),hand=[])
 
-player_hand = hand.Hand((config.get("window_width")/2,config.get("hand_y")),temp_hand)
+temp_hand = [card.Card(random.randint(0,359),random.randint(0,14),hand=player_hand) for _ in range(8)]
+temp_hand.sort()
+player_hand.add_cards(temp_hand)
+
 player_hand.draw_hand()
+
 
 FRAME_TIME = 1000//config.get("fps")
 
@@ -39,16 +42,20 @@ def mouse_release(event):
     mouse.button = None
 
 def remove_duplicate_highlights(hand_cards: list[card.Card]):
-    highlights = 0
+    highlights: list[card.Card] = []
     for hand_card in hand_cards:
         if hand_card.highlighted:
+            highlights.append(hand_card)
+
             if highlights:
-                hand_card.dehighlight()
-            highlights += 1
+                for highlight in highlights[:-1]:
+                    highlight.dehighlight()
+                highlights[-1].highlight()
+            highlights.sort(key=lambda x: x.get_hand_position())
     return highlights
 
 def game_loop(delta):
-    for hand_card in player_hand.hand:
+    for hand_card in player_hand.hand[::-1]:
         if mouse.inside(hand_card.bounding_box):
             check_for_highlight(hand_card)
         else:
@@ -58,9 +65,17 @@ def game_loop(delta):
 
     gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
 
+
+
 def check_for_highlight(hand_card:card.Card):
-    if (not hand_card.highlighted) and card.Card.HIGHLIGHTS == 0:
-        hand_card.highlight()
+    if not hand_card.highlighted:
+        if hand_card.hand:
+            position = hand_card.get_hand_position()
+            if not any(x.highlighted and x.get_hand_position() > position for x in card.Card.HIGHLIGHTS):
+                hand_card.highlight()
+            
+        else:
+            hand_card.highlight()
     
     card.Card.HIGHLIGHTS = remove_duplicate_highlights(player_hand.hand)
     

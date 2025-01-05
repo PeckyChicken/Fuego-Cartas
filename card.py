@@ -1,4 +1,4 @@
-from typing import Self
+from typing import TYPE_CHECKING, Optional, Self
 
 from PIL import Image, ImageTk
 
@@ -6,17 +6,24 @@ import config
 import gui
 import imaging
 
+#Importing hand normally would cause circular imports.
+#So I only import it for type checking.
+if TYPE_CHECKING:
+    from hand import Hand
+
+
 BOLD = gui.font.Font(family="Lucida Console", size=config.get("text_size"), weight="bold")
 class Card:
-    HIGHLIGHTS = 0
+    HIGHLIGHTS: list[Self] = []
     
-    def __init__(self,color:int,value:int,x=300,y=300):
+    def __init__(self,color:int,value:int,x=300,y=300,hand:Optional["Hand"]=None):
         self._get_image(color, value)
 
         self._initial_draw(x, y)
 
         self.highlighted = False
         self.motion = False
+        self.hand = hand
 
     def redraw(self):
         for item in self.id:
@@ -87,7 +94,10 @@ class Card:
         if self.motion:
             return
         if not self.highlighted:
-            self.HIGHLIGHTS += 1
+            if self not in self.HIGHLIGHTS:
+                self.HIGHLIGHTS.append(self)
+            self.HIGHLIGHTS.sort(key=lambda x: x.get_hand_position(),reverse=True)
+
             x = self.x
             y = self.y - config.get("highlight_movement")
             self.smooth_move_to(x,y,100)
@@ -97,11 +107,19 @@ class Card:
         if self.motion:
             return
         if self.highlighted:
-            self.HIGHLIGHTS -= 1
+            if self in self.HIGHLIGHTS:
+                self.HIGHLIGHTS.remove(self)
+            self.HIGHLIGHTS.sort(key=lambda x: x.get_hand_position(),reverse=True)
+
             x = self.x
             y = self.y + config.get("highlight_movement")
             self.smooth_move_to(x,y,100)
             self.highlighted = False
+
+    def get_hand_position(self):
+        if not self.hand:
+            return 0
+        return self.hand.hand.index(self)
 
     def _get_image(self, color, value):
         self.tileset_coords = gui.card_tileset.index_to_coords(value)
@@ -138,12 +156,6 @@ class Card:
         if self.value == other.value:
             return self.color > other.color
         return self.value > other.value
-
-    def __eq__(self,other:Self):
-        return self.value == other.value and self.color == other.color
-
-    def __ne__(self,other:Self):
-        return not(self == other)
     
     def __ge__(self,other:Self):
         if self.value == other.value:

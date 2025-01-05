@@ -33,3 +33,7 @@ class Hand:
             x = draw_start + index*config.get("card_width")/2 * overlap
             card.scale(self.scale/card.scale_value)
             card.move_to(x,self.coords[1])
+    
+    def add_cards(self,cards: list[card.Card]):
+        self.hand.extend(cards)
+        self.draw_hand()
