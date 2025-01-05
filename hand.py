@@ -2,6 +2,7 @@ import card
 import config
 import gui
 
+
 class Hand:
     def __init__(self,coords,hand: list[card.Card]):
         self.coords = coords

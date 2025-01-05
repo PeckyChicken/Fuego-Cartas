@@ -1,5 +1,5 @@
-from contextvars import ContextVar
 import random
+from contextvars import ContextVar
 
 import card
 import config
