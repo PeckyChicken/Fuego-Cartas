@@ -10,13 +10,13 @@ import imaging
 #So I only import it for type checking.
 if TYPE_CHECKING:
     from hand import Hand
-
-
-BOLD = gui.font.Font(family="Lucida Console", size=config.get("text_size"), weight="bold")
 class Card:
     HIGHLIGHTS: list[Self] = []
     
     def __init__(self,color:int,value:int,x=300,y=300,hand:Optional["Hand"]=None):
+        self.font_size = config.get("text_size")
+        self.font = gui.font.Font(family="Lucida Console", size=config.get("text_size"), weight="bold")
+
         self._get_image(color, value)
 
         self._initial_draw(x, y)
@@ -25,13 +25,14 @@ class Card:
         self.motion = False
         self.hand = hand
 
+
     def redraw(self):
         for item in self.id:
             gui.c.delete(item)
         self._photo_image = ImageTk.PhotoImage(self.image)
         self.id[0] = gui.c.create_image(self.x-self.width/2,self.y-self.height/2,image=self._photo_image,anchor="nw")
 
-        self.id[1] = gui.c.create_text(*self.get_text_coords(self.x,self.y),font=BOLD,text=self.hex_code,fill="white")
+        self.id[1] = gui.c.create_text(*self.get_text_coords(self.x,self.y),font=self.font,text=self.hex_code,fill="white")
     
     def get_text_coords(self,x,y):
         text_x, text_y = config.get("TEXT_PLACEMENT")
@@ -41,7 +42,7 @@ class Card:
         text_x += x
         text_y += y
 
-        x_offset = config.get("text_size")*len(self.hex_code)/2
+        x_offset = self.font_size*len(self.hex_code)/2
         text_x -= x_offset
 
         return text_x, text_y
@@ -51,14 +52,16 @@ class Card:
 
     def scale(self,scale):
         self.image = imaging.scale(self.image,scale)
+        self.font_size *= scale
+        self.font.configure(size=round(self.font_size))
+
         self.redraw()
         self.scale_value = scale
 
         self.width *= scale
         self.height *= scale
 
-        self.bounding_box = (self.x,self.y,self.x+self.width,self.y+self.height)
-    
+        self.bounding_box = (self.x,self.y,self.x+self.width,self.y+self.height)    
     def move_to(self,x,y):
 
         self.x = x
