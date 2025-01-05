@@ -30,7 +30,7 @@ class Hand:
         offset = config.get("card_width") * (hand_size-1)/4*overlap
         draw_start = middle - offset
         for index,card in enumerate(self.hand):
-            x = draw_start + index*config.get("card_width")/2 * overlap
+            x = draw_start + index*config.get("card_width")*self.scale * overlap
             card.scale(self.scale/card.scale_value)
             card.move_to(x,self.coords[1])
     
