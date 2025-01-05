@@ -8,12 +8,6 @@ import hand
 
 player_hand = hand.Hand((config.get("window_width")/2,config.get("hand_y")),hand=[])
 
-temp_hand = [card.Card(random.randint(0,359),random.randint(0,14),hand=player_hand) for _ in range(8)]
-temp_hand.sort()
-player_hand.add_cards(temp_hand)
-
-player_hand.draw_hand()
-
 
 FRAME_TIME = 1000//config.get("fps")
 
@@ -28,6 +22,49 @@ class Cursor:
         return (bounding_box[0] < self.x < bounding_box[2]) and (bounding_box[1] < self.y < bounding_box[3])
     
 mouse = Cursor()
+
+def select_card_from_deck(used_cards:list[card.Card],fallback=False):
+    '''Since we don't have a full list of all 8656 cards, we need to simulate the list by using weights.'''
+    colored_cards: list[int] = config.get("colored_cards")
+    wild_cards: list[int] = config.get("wild_cards")
+    cards = colored_cards + wild_cards
+    duplicates: int = config.get("card_copies")
+    colors: int = config.get("card_colors")
+    weights = []
+    for _card in cards:
+        usage_count = len([x for x in used_cards if x.value == _card])
+        weights.append((colors*duplicates) - usage_count)
+    if len(cards) == 0:
+        if not fallback:
+            raise IndexError("select_card_from_deck: All cards are used.")
+        value = 14
+        color = 0
+        return color,value #Fallback on a wild card if all cards are used.
+    value = random.choices(cards,weights,k=1)[0]
+
+    if value in wild_cards:
+        color = 0
+        return color,value
+    
+    used_cards_of_value = [x for x in used_cards if x.value == value]
+    possible_colors = list(range(colors))*duplicates
+    for c in used_cards_of_value:
+        possible_colors.remove(c.color)
+    color = random.choice(possible_colors)
+
+    return color,value
+
+
+temp_hand: list[card.Card] = []
+for _ in range(8):
+    temp_hand.append(card.Card(*select_card_from_deck(temp_hand,fallback=True),hand=player_hand))
+
+temp_hand.sort()
+player_hand.add_cards(temp_hand)
+
+player_hand.draw_hand()
+    
+
 
 def mouse_motion(event):
     mouse.x = event.x
