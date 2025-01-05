@@ -29,11 +29,17 @@ def select_card_from_deck(used_cards:list[card.Card],fallback=False):
     wild_cards: list[int] = config.get("wild_cards")
     cards = colored_cards + wild_cards
     duplicates: int = config.get("card_copies")
+    wild_duplicates: int = config.get("card_copies")
     colors: int = config.get("card_colors")
     weights = []
-    for _card in cards:
+    for _card in colored_cards:
         usage_count = len([x for x in used_cards if x.value == _card])
         weights.append((colors*duplicates) - usage_count)
+    
+    for _card in wild_cards:
+        usage_count = len([x for x in used_cards if x.value == _card])
+        weights.append((wild_duplicates) - usage_count)
+    
     if len(cards) == 0:
         if not fallback:
             raise IndexError("select_card_from_deck: All cards are used.")
@@ -56,7 +62,7 @@ def select_card_from_deck(used_cards:list[card.Card],fallback=False):
 
 
 temp_hand: list[card.Card] = []
-for _ in range(8):
+for _ in range(9):
     temp_hand.append(card.Card(*select_card_from_deck(temp_hand,fallback=True),hand=player_hand))
 
 temp_hand.sort()
