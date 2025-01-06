@@ -9,7 +9,10 @@ with open("config.cfg") as f:
         datum = x.split("=")
         data[datum[0].strip()] = datum[1].strip()
 
-def get(name,fallback=None) -> Any:
+def get(name,fallback=...) -> Any:
     if name.upper() in data:
         return json.loads(data[name.upper()])
+    
+    if fallback == ...:
+        raise KeyError(f"Config item {name} cannot be found.")
     return fallback

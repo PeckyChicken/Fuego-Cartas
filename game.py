@@ -23,8 +23,39 @@ class Cursor:
     
 mouse = Cursor()
 
-def select_card_from_deck(used_cards:list[card.Card],fallback=False):
-    '''Since we don't have a full list of all 8656 cards, we need to simulate the list by using weights.'''
+class Game:
+    def __init__(self,start_card:card.Card):
+        self.stack = [start_card]
+        self.color = start_card.color
+        self.value = start_card.value
+
+        self.x = config.get("play_position")[0]*config.get("window_width")
+        self.y = config.get("play_position")[1]*config.get("window_height")
+        start_card.rescale(config.get("play_scale"))
+        start_card.move_to(self.x,self.y)
+    
+    def validate(self,_card:card.Card):
+        if _card.value in config.get("wild_cards"):
+            return True
+        
+        return self.color == _card.color or self.value == _card.value
+    
+    def play(self,_card:card.Card,color=None):
+        self.stack.append(_card)
+        self.color = color or _card.color
+        self.value = _card.value
+
+        _card.rescale(config.get("play_scale"))
+        while card.Card.MOTION:
+            ...
+        _card.smooth_move_to(self.x,self.y,ms=500)
+        _card.remove_from_hand()
+
+
+
+
+def select_card_from_deck(used_cards:list[card.Card],fallback=False) -> tuple[int,int]:
+    '''Since we don't have a full list of all 8656 cards, we need to simulate the list by using weights.\nReturns (color,value)'''
     colored_cards: list[int] = config.get("colored_cards")
     wild_cards: list[int] = config.get("wild_cards")
     cards = colored_cards + wild_cards
@@ -60,18 +91,6 @@ def select_card_from_deck(used_cards:list[card.Card],fallback=False):
 
     return color,value
 
-
-temp_hand: list[card.Card] = []
-for _ in range(9):
-    temp_hand.append(card.Card(*select_card_from_deck(temp_hand,fallback=True),hand=player_hand))
-
-temp_hand.sort()
-player_hand.add_cards(temp_hand)
-
-player_hand.draw_hand()
-    
-
-
 def mouse_motion(event):
     mouse.x = event.x
     mouse.y = event.y
@@ -97,18 +116,6 @@ def remove_duplicate_highlights(hand_cards: list[card.Card]):
             highlights.sort(key=lambda x: x.get_hand_position())
     return highlights
 
-def game_loop(delta):
-    for hand_card in player_hand.hand[::-1]:
-        if mouse.inside(hand_card.bounding_box):
-            check_for_highlight(hand_card)
-        else:
-            if hand_card.highlighted:
-                hand_card.dehighlight()
-    
-
-    gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
-
-
 
 def check_for_highlight(hand_card:card.Card):
     if not hand_card.highlighted:
@@ -121,7 +128,44 @@ def check_for_highlight(hand_card:card.Card):
             hand_card.highlight()
     
     card.Card.HIGHLIGHTS = remove_duplicate_highlights(player_hand.hand)
+
+
+
+temp_hand: list[card.Card] = []
+for _ in range(9):
+    temp_hand.append(card.Card(*select_card_from_deck(temp_hand,fallback=True),hand=player_hand))
+
+temp_hand.sort()
+player_hand.add_cards(temp_hand)
+
+player_hand.draw_hand()
+
+start_card = select_card_from_deck(temp_hand,fallback=True)
+while start_card[1] in config.get("wild_cards"):
+    start_card = select_card_from_deck(temp_hand,fallback=True)
+
+start_card = card.Card(*start_card)
+temp_hand.append(start_card)
+game = Game(start_card)
+
+
+
+def game_loop(delta):
+    for _card in player_hand.hand[::-1]:
+        if mouse.inside(_card.bounding_box):
+            check_for_highlight(_card)
+        else:
+            if _card.highlighted:
+                _card.dehighlight()
     
+    for _card in card.Card.HIGHLIGHTS:
+        if mouse.clicked and _card.hand == player_hand:
+            game.play(_card)
+
+    gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
+
+
+
 
 gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
 

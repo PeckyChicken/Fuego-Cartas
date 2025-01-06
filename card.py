@@ -1,3 +1,4 @@
+from turtle import width
 from typing import TYPE_CHECKING, Optional, Self
 
 from PIL import Image, ImageTk
@@ -12,6 +13,7 @@ if TYPE_CHECKING:
     from hand import Hand
 class Card:
     HIGHLIGHTS: list[Self] = []
+    MOTION = False
     
     def __init__(self,color:int,value:int,x=300,y=300,hand:Optional["Hand"]=None):
         self.font_size = config.get("text_size")
@@ -51,18 +53,26 @@ class Card:
         return self.image.size
 
     def scale(self,scale):
+        '''Scales the card down or up in size by a relative value.'''
         self.image = imaging.scale(self.image,scale)
         self.font_size *= scale
         self.font.configure(size=round(self.font_size))
 
         self.redraw()
-        self.scale_value = scale
+        self.scale_value *= scale
 
         self.width *= scale
         self.height *= scale
 
-        self.bounding_box = (self.x,self.y,self.x+self.width,self.y+self.height)    
-    def move_to(self,x,y):
+        self.bounding_box = (self.x,self.y,self.x+self.width,self.y+self.height)
+
+    def rescale(self,scale):
+        '''Unlike Card.scale, this function scales to an absolute value rather than a relative value.'''
+
+        scale = scale/self.scale_value
+        self.scale(scale)
+
+    def move_to(self,x,y,update_bounding_box=True):
 
         self.x = x
         self.y = y
@@ -71,14 +81,16 @@ class Card:
         gui.c.moveto(self.id[0],x,y)
         gui.c.moveto(self.id[1],*self.get_text_coords(x,y))
 
-        self.bounding_box = (x,y,x+self.width,y+self.height)
+        if update_bounding_box:
+            self.bounding_box = (x,y,x+self.width,y+self.height)
 
-    def smooth_move_to(self,x,y,ms,_frame=0):
+    def smooth_move_to(self,x,y,ms,update_bounding_box=False,_frame=0):
         self.motion = True
+        self.MOTION = True
 
-        dx = x - self.x
-        dy = y - self.y
-        frames = ms/1000*config.get("fps") - _frame
+        dx = (x - self.x) / self.scale_value
+        dy = (y - self.y) / self.scale_value
+        frames = (ms/1000)*config.get("fps") - _frame
         move_x = dx/frames
         move_y = dy/frames
         gui.c.move(self.id[0],move_x,move_y)
@@ -87,10 +99,12 @@ class Card:
         self.x += move_x
         self.y += move_y
         if frames > _frame:
-            gui.window.after(1000//config.get("fps"), lambda: self.smooth_move_to(x,y,ms,_frame+1))
+            gui.window.after(1000//config.get("fps"), lambda: self.smooth_move_to(x,y,ms,update_bounding_box,_frame+1))
             return
         
         self.motion = False
+        self.MOTION = False
+        self.move_to(x,y,update_bounding_box)
 
     
     def highlight(self):
@@ -123,6 +137,12 @@ class Card:
         if not self.hand:
             return 0
         return self.hand.hand.index(self)
+
+    def remove_from_hand(self):
+        if not self.hand:
+            return
+        self.hand.remove_card(self)
+        self.hand = None
 
     def _get_image(self, color, value):
         self.tileset_coords = gui.card_tileset.index_to_coords(value)

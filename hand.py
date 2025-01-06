@@ -32,9 +32,14 @@ class Hand:
         draw_start = middle - offset
         for index,card in enumerate(self.hand):
             x = draw_start + index*config.get("card_width")*self.scale * overlap
-            card.scale(self.scale/card.scale_value)
+            card.rescale(self.scale)
             card.move_to(x,self.coords[1])
     
     def add_cards(self,cards: list[card.Card]):
         self.hand.extend(cards)
         self.draw_hand()
+    
+    def remove_card(self,_card:card.Card):
+        self.hand.remove(_card)
+        self.draw_hand()
+
