@@ -60,7 +60,7 @@ def select_card_from_deck(used_cards:list[card.Card],fallback=False) -> tuple[in
     wild_cards: list[int] = config.get("wild_cards")
     cards = colored_cards + wild_cards
     duplicates: int = config.get("card_copies")
-    wild_duplicates: int = config.get("card_copies")
+    wild_duplicates: int = config.get("wild_card_copies")
     colors: int = config.get("card_colors")
     weights = []
     for _card in colored_cards:
