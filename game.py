@@ -54,7 +54,7 @@ class Game:
         _card.remove_from_hand()
 
 class Deck:
-    def __init__(self,colored_cards:list[int]=config.get("colored_cards"),wild_cards:list[int]=config.get("colored_cards"),duplicates:list[int]=config.get("duplicates"),num_colors:int=config.get("card_colors")):
+    def __init__(self,colored_cards:list[int]=config.get("colored_cards"),wild_cards:list[int]=config.get("wild_cards"),duplicates:list[int]=config.get("duplicates"),num_colors:int=config.get("card_colors")):
         self.used_cards: list[card.Card] = []
         self.colored_cards: list[int] = colored_cards
         self.wild_cards: list[int] = wild_cards
@@ -68,13 +68,14 @@ class Deck:
         Returns (color, value)'''
         weights = []
         for _card in self.cards:
-            usage_count = len([x for x in self.used_cards if x.value == _card])
-            weights.append((self.duplicates[_card]) - usage_count)
-        
-        if sum(weights) == 0:
+            usage_count = sum(1 for x in self.used_cards if x.value == _card)
+            weight = self.duplicates[_card] * (self.num_colors if _card in self.colored_cards else 1) - usage_count
+            weights.append(weight)
+
+        if sum(weights) <= 0:
             if not fallback:
                 raise IndexError("select_card_from_deck: All cards are used.")
-            value = 14
+            value = 13
             color = 0
             return color, value  # Fallback on a wild card if all cards are used.
         value = random.choices(self.cards, weights, k=1)[0]
@@ -93,27 +94,6 @@ class Deck:
 
     def add_used_card(self, _card: card.Card):
         self.used_cards.append(_card)
-    
-    def get_remaining_cards(self, color:Optional[int]=None, value:Optional[int]=None) -> int:
-        '''Given an optional color and value, return the number of remaining cards of that color and value in the deck.'''
-        quantities = []
-        for _card in self.cards:
-            usage_count = len([x for x in self.used_cards if x.value == _card])
-            quantities.append((self.duplicates[_card]) - usage_count)
-        
-        if sum(quantities) == 0:
-            return 0  # All cards are used.
-        
-        if not value:
-            if color:
-                return sum(quantities)
-            else:
-                return sum(x*self.num_colors for x in quantities)
-        
-        if color:
-            return quantities[value]
-        else:
-            return quantities[value] * self.num_colors
 
 deck = Deck()
 
