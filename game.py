@@ -1,5 +1,6 @@
 import random
 from contextvars import ContextVar
+from typing import Optional
 
 import card
 import config
@@ -52,47 +53,69 @@ class Game:
         _card.smooth_move_to(self.x,self.y,ms=200/config.get("game_speed"),update_bounding_box=True)
         _card.remove_from_hand()
 
+class Deck:
+    def __init__(self,colored_cards:list[int]=config.get("colored_cards"),wild_cards:list[int]=config.get("colored_cards"),duplicates:list[int]=config.get("duplicates"),num_colors:int=config.get("card_colors")):
+        self.used_cards: list[card.Card] = []
+        self.colored_cards: list[int] = colored_cards
+        self.wild_cards: list[int] = wild_cards
+        self.cards = self.colored_cards + self.wild_cards
+        self.duplicates = duplicates
+        self.num_colors = num_colors
 
+    def select_card(self, fallback=False) -> tuple[int, int]:
+        '''Since we don't have a full list of all 10080 cards, we need to simulate the list by using weights.
+        
+        Returns (color, value)'''
+        weights = []
+        for _card in self.cards:
+            usage_count = len([x for x in self.used_cards if x.value == _card])
+            weights.append((self.duplicates[_card]) - usage_count)
+        
+        if sum(weights) == 0:
+            if not fallback:
+                raise IndexError("select_card_from_deck: All cards are used.")
+            value = 14
+            color = 0
+            return color, value  # Fallback on a wild card if all cards are used.
+        value = random.choices(self.cards, weights, k=1)[0]
 
+        if value in self.wild_cards:
+            color = 0
+            return color, value
+        
+        used_cards_of_value = [x for x in self.used_cards if x.value == value]
+        possible_colors = [x for x in range(self.num_colors)] * self.duplicates[value]
+        for c in used_cards_of_value:
+            possible_colors.remove(c.color)
+        color = random.choice(possible_colors)
 
-def select_card_from_deck(used_cards:list[card.Card],fallback=False) -> tuple[int,int]:
-    '''Since we don't have a full list of all 10080 cards, we need to simulate the list by using weights.
+        return color, value
+
+    def add_used_card(self, _card: card.Card):
+        self.used_cards.append(_card)
     
-    Returns (color,value)'''
-    colored_cards: list[int] = config.get("colored_cards")
-    wild_cards: list[int] = config.get("wild_cards")
-    cards = colored_cards + wild_cards
-    duplicates: int = config.get("card_copies")
-    wild_duplicates: int = config.get("wild_card_copies")
-    colors: int = config.get("card_colors")
-    weights = []
-    for _card in colored_cards:
-        usage_count = len([x for x in used_cards if x.value == _card])
-        weights.append((colors*duplicates) - usage_count)
-    
-    for _card in wild_cards:
-        usage_count = len([x for x in used_cards if x.value == _card])
-        weights.append((wild_duplicates) - usage_count)
-    
-    if len(cards) == 0:
-        if not fallback:
-            raise IndexError("select_card_from_deck: All cards are used.")
-        value = 14
-        color = 0
-        return color,value #Fallback on a wild card if all cards are used.
-    value = random.choices(cards,weights,k=1)[0]
+    def get_remaining_cards(self, color:Optional[int]=None, value:Optional[int]=None) -> int:
+        '''Given an optional color and value, return the number of remaining cards of that color and value in the deck.'''
+        quantities = []
+        for _card in self.cards:
+            usage_count = len([x for x in self.used_cards if x.value == _card])
+            quantities.append((self.duplicates[_card]) - usage_count)
+        
+        if sum(quantities) == 0:
+            return 0  # All cards are used.
+        
+        if not value:
+            if color:
+                return sum(quantities)
+            else:
+                return sum(x*self.num_colors for x in quantities)
+        
+        if color:
+            return quantities[value]
+        else:
+            return quantities[value] * self.num_colors
 
-    if value in wild_cards:
-        color = 0
-        return color,value
-    
-    used_cards_of_value = [x for x in used_cards if x.value == value]
-    possible_colors = list(range(colors))*duplicates
-    for c in used_cards_of_value:
-        possible_colors.remove(c.color)
-    color = random.choice(possible_colors)
-
-    return color,value
+deck = Deck()
 
 def mouse_motion(event):
     mouse.x = event.x
@@ -137,22 +160,21 @@ def check_for_highlight(hand_card:card.Card):
 
 temp_hand: list[card.Card] = []
 for _ in range(9):
-    temp_hand.append(card.Card(*select_card_from_deck(temp_hand,fallback=True),hand=player_hand))
+    temp_hand.append(card.Card(*deck.select_card(fallback=True),hand=player_hand))
+    deck.add_used_card(temp_hand[-1])
 
 temp_hand.sort()
 player_hand.add_cards(temp_hand)
 
 player_hand.draw_hand()
 
-start_card = select_card_from_deck(temp_hand,fallback=True)
+start_card = deck.select_card(fallback=True)
 while start_card[1] in config.get("wild_cards"):
-    start_card = select_card_from_deck(temp_hand,fallback=True)
+    start_card = deck.select_card(fallback=True)
 
 start_card = card.Card(*start_card)
-temp_hand.append(start_card)
+deck.add_used_card(start_card)
 game = Game(start_card)
-
-
 
 def game_loop(delta):
     for _card in player_hand.hand[::-1]:
@@ -163,7 +185,7 @@ def game_loop(delta):
                 _card.dehighlight()
     
     for _card in card.Card.HIGHLIGHTS:
-        if mouse.clicked_this_frame and _card.hand == player_hand:
+        if mouse.clicked_this_frame and _card.hand == player_hand and game.validate(_card):
             game.play(_card)
     
     if mouse.clicked_this_frame:
