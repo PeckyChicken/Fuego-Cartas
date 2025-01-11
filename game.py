@@ -55,7 +55,9 @@ class Game:
 
 
 def select_card_from_deck(used_cards:list[card.Card],fallback=False) -> tuple[int,int]:
-    '''Since we don't have a full list of all 8656 cards, we need to simulate the list by using weights.\nReturns (color,value)'''
+    '''Since we don't have a full list of all 9720 cards, we need to simulate the list by using weights.
+    
+    Returns (color,value)'''
     colored_cards: list[int] = config.get("colored_cards")
     wild_cards: list[int] = config.get("wild_cards")
     cards = colored_cards + wild_cards
