@@ -116,7 +116,7 @@ class Card:
 
             x = self.x
             y = self.y - config.get("highlight_movement")
-            self.smooth_move_to(x,y,100/config.get("game_speed"))
+            self.smooth_move_to(x,y,100/config.get("game_speed"),easing=0.5)
             self.highlighted = True
 
     def dehighlight(self):
@@ -129,7 +129,7 @@ class Card:
 
             x = self.x
             y = self.y + config.get("highlight_movement")
-            self.smooth_move_to(x,y,100/config.get("game_speed"))
+            self.smooth_move_to(x,y,100/config.get("game_speed"),easing=0.5)
             self.highlighted = False
 
     def get_hand_position(self):

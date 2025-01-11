@@ -50,7 +50,7 @@ class Game:
         _card.rescale(config.get("play_scale"))
         while card.Card.MOTION:
             ...
-        _card.smooth_move_to(self.x,self.y,ms=200/config.get("game_speed"),update_bounding_box=True)
+        _card.smooth_move_to(self.x,self.y,ms=200/config.get("game_speed"),update_bounding_box=True,easing=2)
         _card.remove_from_hand()
 
 class Deck:
