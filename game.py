@@ -16,6 +16,7 @@ class Cursor:
         self.x = 0
         self.y = 0
         self.clicked = False
+        self.clicked_this_frame = False
         self.button = None
 
     def inside(self,bounding_box):
@@ -99,6 +100,7 @@ def mouse_motion(event):
 
 def mouse_click(event):
     mouse.clicked = True
+    mouse.clicked_this_frame = True
     mouse.button = event.num
 
 def mouse_release(event):
@@ -161,8 +163,11 @@ def game_loop(delta):
                 _card.dehighlight()
     
     for _card in card.Card.HIGHLIGHTS:
-        if mouse.clicked and _card.hand == player_hand:
+        if mouse.clicked_this_frame and _card.hand == player_hand:
             game.play(_card)
+    
+    if mouse.clicked_this_frame:
+        mouse.clicked_this_frame = False
 
     gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
 
