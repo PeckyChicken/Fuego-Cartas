@@ -48,7 +48,7 @@ class Game:
         _card.rescale(config.get("play_scale"))
         while card.Card.MOTION:
             ...
-        _card.smooth_move_to(self.x,self.y,ms=500)
+        _card.smooth_move_to(self.x,self.y,ms=100)
         _card.remove_from_hand()
 
 
