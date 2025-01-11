@@ -84,26 +84,26 @@ class Card:
         if update_bounding_box:
             self.bounding_box = (x,y,x+self.width,y+self.height)
 
-    def smooth_move_to(self,dest_x,dest_y,ms,update_bounding_box=False,_frame=0,_original_x=None,_original_y=None):
+    def smooth_move_to(self, dest_x, dest_y, ms, easing=1, update_bounding_box=False, _frame=0, _original_x=None, _original_y=None):
         self.motion = True
         self.MOTION = True
         _original_x = _original_x or self.x
         _original_y = _original_y or self.y
 
-        frames = (ms/1000)*config.get("fps")
-        ratio_complete = _frame/frames
+        frames = (ms / 1000) * config.get("fps")
+        ratio_complete = (_frame / frames) ** easing
 
-        x = _original_x + (dest_x - _original_x)*ratio_complete
-        y = _original_y + (dest_y - _original_y)*ratio_complete
+        x = _original_x + (dest_x - _original_x) * ratio_complete
+        y = _original_y + (dest_y - _original_y) * ratio_complete
 
-        self.move_to(x,y,update_bounding_box)
+        self.move_to(x, y, update_bounding_box)
 
         if frames > _frame:
-            gui.window.after(1000//config.get("fps"), lambda: self.smooth_move_to(dest_x,dest_y,ms,update_bounding_box,_frame+1,_original_x,_original_y))
+            gui.window.after(1000 // config.get("fps"), lambda: self.smooth_move_to(dest_x, dest_y, ms, easing, update_bounding_box, _frame + 1, _original_x, _original_y))
             return
         self.motion = False
         self.MOTION = False
-        self.move_to(x,y,update_bounding_box)
+        self.move_to(dest_x, dest_y, update_bounding_box)
 
     
     def highlight(self):
