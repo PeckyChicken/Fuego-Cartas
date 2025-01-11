@@ -6,7 +6,7 @@ import config
 import gui
 import hand
 
-player_hand = hand.Hand((config.get("window_width")/2,config.get("hand_y")),hand=[])
+player_hand = hand.Hand((config.get("window_width")/2,config.get("hand_y_pos")*config.get("window_height")),hand=[])
 
 
 FRAME_TIME = 1000//config.get("fps")
@@ -55,7 +55,7 @@ class Game:
 
 
 def select_card_from_deck(used_cards:list[card.Card],fallback=False) -> tuple[int,int]:
-    '''Since we don't have a full list of all 9720 cards, we need to simulate the list by using weights.
+    '''Since we don't have a full list of all 10080 cards, we need to simulate the list by using weights.
     
     Returns (color,value)'''
     colored_cards: list[int] = config.get("colored_cards")
