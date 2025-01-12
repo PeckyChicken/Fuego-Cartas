@@ -27,7 +27,14 @@ class Hand:
             card.redraw()
         hand_size = len(self.hand)
         middle = self.coords[0]
-        overlap = 1-config.get("card_overlap")
+
+        min_overlap = 1-config.get("min_card_overlap")
+        max_overlap = 1-config.get("max_card_overlap")
+        card_width = config.get("card_width")*self.scale
+        overlap = self.width/(hand_size*card_width)
+
+        overlap = min(max(max_overlap,overlap),min_overlap)
+
         offset = config.get("card_width") * (hand_size-1)/4*overlap
         draw_start = middle - offset
         for index,card in enumerate(self.hand):
