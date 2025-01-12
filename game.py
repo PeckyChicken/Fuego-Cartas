@@ -47,6 +47,9 @@ class Game:
         self.color = color or _card.color
         self.value = _card.value
 
+        if not _card.face_up:
+            _card.flip()
+
         _card.rescale(config.get("play_scale"))
         while card.Card.MOTION:
             ...
