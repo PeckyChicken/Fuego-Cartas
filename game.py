@@ -177,6 +177,7 @@ def evaluate_highlight(_card:card.Card):
         if game.wild_card and _card.value in config.get("colored_cards"):
             game.play(game.wild_card,color=_card.color)
             game.wild_card = None
+            gui.c.delete(game.cover[0])
             return
 
         if not game.validate(_card):
