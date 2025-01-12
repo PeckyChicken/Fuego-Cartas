@@ -35,6 +35,10 @@ class Hand:
             card.rescale(self.scale)
             card.move_to(x,self.coords[1])
     
+    def sort(self):
+        self.hand.sort()
+        self.draw_hand()
+
     def add_cards(self,cards: list[card.Card]):
         self.hand.extend(cards)
         self.draw_hand()
