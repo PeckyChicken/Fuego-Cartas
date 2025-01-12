@@ -69,13 +69,13 @@ class Deck:
 
     def setup_next_card(self):
         next_card = self._select_card(fallback=False)
-        
+
         x = config.get("deck_position")[0]*config.get("window_width")
         y = config.get("deck_position")[1]*config.get("window_height")
-
-        self.next_card = card.Card(*next_card,x=x,y=y,hand=None)
+        self.next_card = card.Card(*next_card,hand=None)
 
         self.next_card.rescale(config.get("play_scale"))
+        self.next_card.move_to(x, y)
         self.next_card.flip()
 
     def select_next_card(self) -> card.Card:
@@ -191,6 +191,12 @@ def game_loop(delta):
     for _card in card.Card.HIGHLIGHTS:
         if mouse.clicked_this_frame and _card.hand == player_hand and game.validate(_card):
             game.play(_card)
+    
+    if mouse.inside(deck.next_card.bounding_box) and mouse.clicked_this_frame:
+        _card = deck.select_next_card()
+        _card.add_to_hand(player_hand)
+        _card.fix_image()
+        player_hand.sort()
     
     if mouse.clicked_this_frame:
         mouse.clicked_this_frame = False
