@@ -30,6 +30,7 @@ class Game:
         self.stack = [start_card]
         self.color = start_card.color
         self.value = start_card.value
+        self.wild_card: card.Card|None = None
 
         self.x = config.get("play_position")[0]*config.get("window_width")
         self.y = config.get("play_position")[1]*config.get("window_height")
@@ -44,7 +45,7 @@ class Game:
     
     def play(self,_card:card.Card,color=None):
         self.stack.append(_card)
-        self.color = color or _card.color
+        self.color = _card.color if color is None else color
         self.value = _card.value
 
         if not _card.face_up:
@@ -189,7 +190,18 @@ def game_loop(delta):
                 _card.dehighlight()
     
     for _card in card.Card.HIGHLIGHTS:
-        if mouse.clicked_this_frame and _card.hand == player_hand and game.validate(_card):
+        if mouse.clicked_this_frame and _card.hand == player_hand:
+            if game.wild_card and _card.value in config.get("colored_cards"):
+                game.play(game.wild_card,color=_card.color)
+                game.wild_card = None
+                continue
+
+            if not game.validate(_card):
+                continue
+
+            if _card.value in config.get("wild_cards"):
+                game.wild_card = _card
+                continue
             game.play(_card)
     
     if mouse.inside(deck.next_card.bounding_box) and mouse.clicked_this_frame:
