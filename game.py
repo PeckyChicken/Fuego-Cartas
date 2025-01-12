@@ -168,6 +168,8 @@ def check_for_highlight(hand_card:card.Card):
 for _ in range(9):
     _card = deck.select_next_card()
     _card.add_to_hand(player_hand)
+    _card.fix_image()
+
 
 player_hand.sort()
 
