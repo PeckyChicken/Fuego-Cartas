@@ -24,7 +24,7 @@ class Card:
 
         self._get_image(color, value)
 
-        self._initial_draw(x, y)
+        self._initial_render(x, y)
 
         self.highlighted = False
         self.motion = False
@@ -187,7 +187,7 @@ class Card:
             self.image = imaging.shift(gui.card_tileset.get(*self.tileset_coords),self.color)
             self.hex_code = imaging.rgb_to_hex(*imaging.red_shift(color))
 
-    def _initial_draw(self, x, y):
+    def _initial_render(self, x, y):
         self.id = [None,None]
         self.scale_value = 1
 
