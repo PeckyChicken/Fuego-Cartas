@@ -6,6 +6,7 @@ from PIL import Image, ImageTk
 import config
 import gui
 import imaging
+import sounds
 
 #Importing hand normally would cause circular imports.
 #So I only import it for type checking.
@@ -110,6 +111,7 @@ class Card:
         if self.motion:
             return
         if not self.highlighted:
+            sounds.play_sound(sounds.hover_sound)
             if self not in self.HIGHLIGHTS:
                 self.HIGHLIGHTS.append(self)
             self.HIGHLIGHTS.sort(key=lambda x: x.get_hand_position(),reverse=True)
