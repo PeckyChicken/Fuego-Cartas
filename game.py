@@ -140,7 +140,10 @@ def check_for_highlight(hand_card:card.Card):
 
 temp_hand: list[card.Card] = []
 for _ in range(9):
-    temp_hand.append(card.Card(*deck.select_card(fallback=True),hand=player_hand))
+    _card = card.Card(*deck.select_card(fallback=True),hand=player_hand)
+    if random.randint(0,1):
+        _card.flip()
+    temp_hand.append(_card)
     deck.add_used_card(temp_hand[-1])
 
 temp_hand.sort()

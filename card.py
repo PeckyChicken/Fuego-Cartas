@@ -20,6 +20,8 @@ class Card:
         self.font_size = config.get("text_size")
         self.font = gui.font.Font(family="Lucida Console", size=config.get("text_size"), weight="bold")
 
+        self.face_up = True
+
         self._get_image(color, value)
 
         self._initial_draw(x, y)
@@ -35,7 +37,8 @@ class Card:
         self._photo_image = ImageTk.PhotoImage(self.image)
         self.id[0] = gui.c.create_image(self.x-self.width/2,self.y-self.height/2,image=self._photo_image,anchor="nw")
 
-        self.id[1] = gui.c.create_text(*self.get_text_coords(self.x,self.y),font=self.font,text=self.hex_code,fill="white")
+        if self.face_up:
+            self.id[1] = gui.c.create_text(*self.get_text_coords(self.x,self.y),font=self.font,text=self.hex_code,fill="white")
     
     def get_text_coords(self,x,y):
         text_x, text_y = config.get("TEXT_PLACEMENT")
@@ -144,11 +147,21 @@ class Card:
             return
         self.hand.remove_card(self)
         self.hand = None
+    
+    def flip(self):
+        self.face_up = not self.face_up
+        if self.face_up:
+            self._get_image(self.color,self.value)
+        else:
+            self.image = gui.card_tileset.get(8,1)
+        self.image = imaging.scale(self.image,self.scale_value)
+        self.redraw()
 
     def _get_image(self, color, value):
         self.tileset_coords = gui.card_tileset.index_to_coords(value)
         self.color = color
         self.value = value
+        
         if value in config.get("wild_cards"):
             self.color = 0
             self.image = gui.card_tileset.get(*self.tileset_coords)
