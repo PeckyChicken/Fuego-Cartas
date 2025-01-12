@@ -17,6 +17,10 @@ window.attributes('-fullscreen',config.get("fullscreen"))
 c = Tk.Canvas(window,width=config.get("window_width"),height=config.get("window_height"),bg="#77DD77")
 c.pack(padx=0,pady=0)
 
+cover = Image.open(fp="Assets/cover.png")
+cover = imaging.scale(cover,cover.width//config.get("window_width"))
+cover = ImageTk.PhotoImage(cover)
+
 class Point:
     def __init__(self,x: int,y: int):
         self.set_coords(x,y)

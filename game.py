@@ -31,6 +31,7 @@ class Game:
         self.color = start_card.color
         self.value = start_card.value
         self.wild_card: card.Card|None = None
+        self.cover = [None]
 
         self.x = config.get("play_position")[0]*config.get("window_width")
         self.y = config.get("play_position")[1]*config.get("window_height")
@@ -56,6 +57,12 @@ class Game:
             ...
         _card.smooth_move_to(self.x,self.y,ms=200/config.get("game_speed"),update_bounding_box=True,easing=2)
         _card.remove_from_hand()
+    
+    def wild_card_setup(self,_card:card.Card):
+        self.wild_card = _card
+        self.cover[0] = gui.c.create_image(config.get("window_width")/2,config.get("window_height")/2,image=gui.cover)
+        player_hand.render_hand()
+        
 
 class Deck:
     def __init__(self,colored_cards:list[int]=config.get("colored_cards"),wild_cards:list[int]=config.get("wild_cards"),duplicates:list[int]=config.get("duplicates"),num_colors:int=config.get("card_colors")):
@@ -165,21 +172,21 @@ def check_for_highlight(hand_card:card.Card):
     
     card.Card.HIGHLIGHTS = remove_duplicate_highlights(player_hand.hand)
 
+def evaluate_highlight(_card:card.Card):
+    if mouse.clicked_this_frame and _card.hand == player_hand:
+        if game.wild_card and _card.value in config.get("colored_cards"):
+            game.play(game.wild_card,color=_card.color)
+            game.wild_card = None
+            return
 
-for _ in range(9):
-    _card = deck.select_next_card()
-    _card.add_to_hand(player_hand)
-    _card.fix_image()
+        if not game.validate(_card):
+            return
 
-
-player_hand.sort()
-
-start_card: card.Card = deck.select_next_card()
-while start_card.value in config.get("wild_cards"):
-    deck.return_to_deck(start_card)
-    start_card = deck.select_next_card()
-
-game = Game(start_card)
+        if _card.value in config.get("wild_cards"):
+            game.wild_card_setup(_card)
+            return
+        
+        game.play(_card)
 
 def game_loop(delta):
     for _card in player_hand.hand[::-1]:
@@ -190,19 +197,7 @@ def game_loop(delta):
                 _card.dehighlight()
     
     for _card in card.Card.HIGHLIGHTS:
-        if mouse.clicked_this_frame and _card.hand == player_hand:
-            if game.wild_card and _card.value in config.get("colored_cards"):
-                game.play(game.wild_card,color=_card.color)
-                game.wild_card = None
-                continue
-
-            if not game.validate(_card):
-                continue
-
-            if _card.value in config.get("wild_cards"):
-                game.wild_card = _card
-                continue
-            game.play(_card)
+        evaluate_highlight(_card)
     
     if mouse.inside(deck.next_card.bounding_box) and mouse.clicked_this_frame:
         _card = deck.select_next_card()
@@ -215,8 +210,19 @@ def game_loop(delta):
 
     gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
 
+for _ in range(9):
+    _card = deck.select_next_card()
+    _card.add_to_hand(player_hand)
+    _card.fix_image()
 
+player_hand.sort()
 
+start_card: card.Card = deck.select_next_card()
+while start_card.value in config.get("wild_cards"):
+    deck.return_to_deck(start_card)
+    start_card = deck.select_next_card()
+
+game = Game(start_card)
 
 gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
 
