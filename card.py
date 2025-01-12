@@ -29,6 +29,7 @@ class Card:
         self.highlighted = False
         self.motion = False
         self.hand = hand
+        
 
 
     def redraw(self):
@@ -147,6 +148,16 @@ class Card:
             return
         self.hand.remove_card(self)
         self.hand = None
+    
+    def add_to_hand(self,hand: "Hand"):
+        self.hand = hand
+        self.hand.add_cards([self])
+
+    def destroy(self):
+        self.remove_from_hand()
+        for item in self.id:
+            gui.c.delete(item)
+        self.id.clear()
     
     def flip(self):
         self.face_up = not self.face_up
