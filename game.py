@@ -64,8 +64,29 @@ class Deck:
         self.cards = self.colored_cards + self.wild_cards
         self.duplicates = duplicates
         self.num_colors = num_colors
+        self.next_card: card.Card|None = None
+        self.setup_next_card()
 
-    def select_card(self, fallback=False) -> tuple[int, int]:
+    def setup_next_card(self):
+        next_card = self._select_card(fallback=False)
+        
+        x = config.get("deck_position")[0]*config.get("window_width")
+        y = config.get("deck_position")[1]*config.get("window_height")
+
+        self.next_card = card.Card(*next_card,x=x,y=y,hand=None)
+
+        self.next_card.rescale(config.get("play_scale"))
+        self.next_card.flip()
+
+    def select_next_card(self) -> card.Card:
+        next_card = self.next_card
+        if not next_card.face_up:
+            next_card.flip()
+        self.add_used_card(self.next_card)
+        self.setup_next_card()
+        return next_card
+
+    def _select_card(self, fallback=False) -> tuple[int, int]:
         '''Since we don't have a full list of all 10080 cards, we need to simulate the list by using weights.
         
         Returns (color, value)'''
@@ -97,6 +118,10 @@ class Deck:
 
     def add_used_card(self, _card: card.Card):
         self.used_cards.append(_card)
+    
+    def return_to_deck(self,_card:card.Card):
+        if _card in self.used_cards:
+            self.used_cards.remove(_card)
 
 deck = Deck()
 
@@ -140,25 +165,17 @@ def check_for_highlight(hand_card:card.Card):
     card.Card.HIGHLIGHTS = remove_duplicate_highlights(player_hand.hand)
 
 
-temp_hand: list[card.Card] = []
 for _ in range(9):
-    _card = card.Card(*deck.select_card(fallback=True),hand=player_hand)
-    if random.randint(0,1):
-        _card.flip()
-    temp_hand.append(_card)
-    deck.add_used_card(temp_hand[-1])
+    _card = deck.select_next_card()
+    _card.add_to_hand(player_hand)
 
-temp_hand.sort()
-player_hand.add_cards(temp_hand)
+player_hand.sort()
 
-player_hand.draw_hand()
+start_card: card.Card = deck.select_next_card()
+while start_card.value in config.get("wild_cards"):
+    deck.return_to_deck(start_card)
+    start_card = deck.select_next_card()
 
-start_card = deck.select_card(fallback=True)
-while start_card[1] in config.get("wild_cards"):
-    start_card = deck.select_card(fallback=True)
-
-start_card = card.Card(*start_card)
-deck.add_used_card(start_card)
 game = Game(start_card)
 
 def game_loop(delta):
