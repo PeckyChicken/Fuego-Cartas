@@ -140,7 +140,6 @@ def check_for_highlight(hand_card:card.Card):
     card.Card.HIGHLIGHTS = remove_duplicate_highlights(player_hand.hand)
 
 
-
 temp_hand: list[card.Card] = []
 for _ in range(9):
     _card = card.Card(*deck.select_card(fallback=True),hand=player_hand)
