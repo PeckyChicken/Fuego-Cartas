@@ -77,6 +77,12 @@ class Card:
         scale = scale/self.scale_value
         self.scale(scale)
 
+    def fix_image(self):
+        '''Constant rescaling of an image can cause it to become blurry. This function resets the image to its original size and then rescales it from there.'''
+
+        self._get_image(self.color,self.value)
+        self.image = imaging.scale(self.image,self.scale_value)
+
     def move_to(self,x,y,update_bounding_box=True):
 
         self.x = x
