@@ -16,11 +16,12 @@ class Card:
     HIGHLIGHTS: list[Self] = []
     MOTION = False
     
-    def __init__(self,color:int,value:int,x=300,y=300,hand:Optional["Hand"]=None):
+    def __init__(self,color:int,value:int,x=0,y=0,hand:Optional["Hand"]=None):
         self.font_size = config.get("text_size")
         self.font = gui.font.Font(family="Lucida Console", size=config.get("text_size"), weight="bold")
 
         self.face_up = True
+        self.scale_value = 1
 
         self._get_image(color, value)
 
@@ -29,8 +30,6 @@ class Card:
         self.highlighted = False
         self.motion = False
         self.hand = hand
-        
-
 
     def rerender(self):
         for item in self.id:
@@ -42,7 +41,10 @@ class Card:
             self.id[1] = gui.c.create_text(*self.get_text_coords(self.x,self.y),font=self.font,text=self.hex_code,fill="white")
     
     def get_text_coords(self,x,y):
-        text_x, text_y = config.get("TEXT_PLACEMENT")
+        if self.value in config.get("wild_cards"):
+            text_x, text_y = config.get("WILD_CARD_TEXT_PLACEMENT")[config.get("wild_cards").index(self.value)]
+        else:
+            text_x, text_y = config.get("TEXT_PLACEMENT")
 
         text_x *= self.width
         text_y *= self.height
@@ -81,7 +83,6 @@ class Card:
         '''Constant rescaling of an image can cause it to become blurry. This function resets the image to its original size and then rescales it from there.'''
 
         self._get_image(self.color,self.value)
-        self.image = imaging.scale(self.image,self.scale_value)
 
     def move_to(self,x,y,update_bounding_box=True):
 
@@ -179,13 +180,14 @@ class Card:
         self.color = color
         self.value = value
         
-        if value in config.get("wild_cards"):
-            self.color = 0
+        if value in config.get("wild_cards") and color == -1:
             self.image = gui.card_tileset.get(*self.tileset_coords)
             self.hex_code = ""
         else:
             self.image = imaging.shift(gui.card_tileset.get(*self.tileset_coords),self.color)
             self.hex_code = imaging.rgb_to_hex(*imaging.red_shift(color))
+
+        self.image = imaging.scale(self.image,self.scale_value)
 
     def _initial_render(self, x, y):
         self.id = [None,None]

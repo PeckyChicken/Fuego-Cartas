@@ -36,6 +36,7 @@ class Game:
         self.x = config.get("play_position")[0]*config.get("window_width")
         self.y = config.get("play_position")[1]*config.get("window_height")
         start_card.rescale(config.get("play_scale"))
+        start_card.fix_image()
         start_card.move_to(self.x,self.y)
     
     def validate(self,_card:card.Card):
@@ -51,6 +52,9 @@ class Game:
 
         if not _card.face_up:
             _card.flip()
+
+        if _card.value in config.get("wild_cards"):
+            _card._get_image(color,_card.value)
 
         _card.rescale(config.get("play_scale"))
         while card.Card.MOTION:
@@ -117,12 +121,12 @@ class Deck:
             if not fallback:
                 raise IndexError("select_card_from_deck: All cards are used.")
             value = 13
-            color = 0
+            color = -1
             return color, value  # Fallback on a wild card if all cards are used.
         value = random.choices(self.cards, weights, k=1)[0]
 
         if value in self.wild_cards:
-            color = 0
+            color = -1
             return color, value
         
         used_cards_of_value = [x for x in self.used_cards if x.value == value]
