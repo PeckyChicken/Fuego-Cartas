@@ -25,7 +25,7 @@ class Hand:
     def render_hand(self):
         for card in self.hand:
             card.dehighlight()
-            card.redraw()
+            card.rerender()
         hand_size = len(self.hand)
         middle = self.coords[0]
 

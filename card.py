@@ -32,7 +32,7 @@ class Card:
         
 
 
-    def redraw(self):
+    def rerender(self):
         for item in self.id:
             gui.c.delete(item)
         self._photo_image = ImageTk.PhotoImage(self.image)
@@ -63,7 +63,7 @@ class Card:
         self.font_size *= scale
         self.font.configure(size=round(self.font_size))
 
-        self.redraw()
+        self.rerender()
         self.scale_value *= scale
 
         self.width *= scale
@@ -172,7 +172,7 @@ class Card:
         else:
             self.image = gui.card_tileset.get(8,1)
         self.image = imaging.scale(self.image,self.scale_value)
-        self.redraw()
+        self.rerender()
 
     def _get_image(self, color, value):
         self.tileset_coords = gui.card_tileset.index_to_coords(value)
@@ -199,7 +199,7 @@ class Card:
 
         self.bounding_box = (x,y,x+self.width,y+self.height)
 
-        self.redraw()
+        self.rerender()
 
     def __lt__(self,other:Self):
         if self.value == other.value:
