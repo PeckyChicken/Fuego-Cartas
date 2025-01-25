@@ -6,6 +6,7 @@ import card
 import config
 import gui
 import hand
+import imaging
 
 player_hand = hand.Hand((config.get("window_width")/2,config.get("hand_y_pos")*config.get("window_height")),hand=[])
 
@@ -32,6 +33,9 @@ class Game:
         self.value = start_card.value
         self.wild_card: card.Card|None = None
         self.cover = []
+
+        self.wild_font = _card.font.copy()
+        self.wild_font["size"] = config.get("wild_text_size")
 
         self.x = config.get("play_position")[0]*config.get("window_width")
         self.y = config.get("play_position")[1]*config.get("window_height")
@@ -66,15 +70,61 @@ class Game:
         self.wild_card = _card
         for item in self.cover:
             gui.c.delete(item)
-        
-        _font = _card.font.copy()
-        _font["size"] = config.get("wild_text_size")
 
         self.cover.clear()
         self.cover.append(gui.c.create_image(config.get("window_width")/2,config.get("window_height")/2,image=gui.cover))
-        self.cover.append(gui.c.create_text(config.get("window_width")*config.get("wild_text_placement")[0],config.get("window_height")*config.get("wild_text_placement")[1],text="Select color for Wild Card.",font=_font,fill="white"))
+        self.cover.append(gui.c.create_text(config.get("window_width")*config.get("wild_text_placement")[0],config.get("window_height")*config.get("wild_text_placement")[1],text="Select color for Wild Card.",font=self.wild_font,fill="white"))
 
+        selection.render_colors()
         player_hand.render_hand()
+
+
+class ColorSelection:
+    def __init__(self):
+        self.colors = range(config.get("card_colors"))
+        self.cover_id = []
+        self.color_ids = []
+        self.text_ids = []
+        
+    def render_colors(self,colors=None):
+        self.delete_colors()
+
+        self.cover_id.append(gui.c.create_rectangle(0,0,config.get("window_width"),config.get("window_height"),fill=config.get("background_color")))
+
+        if colors is None:
+            colors = self.colors
+        
+        
+        height = config.get("wild_selection_rows")
+        width = len(colors)//height
+
+        box_width = config.get("wild_selection_size")[0]
+        box_height= config.get("wild_selection_size")[1]
+
+        pixel_width = width*(box_width+config.get("wild_selection_margin")) - config.get("wild_selection_margin")
+        pixel_height= height*(box_height+config.get("wild_selection_margin"))-config.get("wild_selection_margin")
+
+        start_x = config.get("window_width")/2 - pixel_width/2
+        start_y = config.get("window_height")/2 - pixel_height/2
+
+        _font = game.wild_font.copy()
+        _font["size"] = config.get("wild_selection_font_size")
+
+        for index,color in enumerate(colors):
+            x = start_x + (index%width)*(box_width+config.get("wild_selection_margin"))
+            y = start_y + (index//width)*(box_height+config.get("wild_selection_margin"))
+            fill_color = imaging.rgb_to_hex(*imaging.red_shift(color))
+            self.color_ids.append(gui.c.create_rectangle(x,y,x+box_width,y+box_height,fill=fill_color))
+            self.text_ids.append(gui.c.create_text(x+box_width/2,y+box_height/2,text=fill_color,font=_font,fill="white"))
+        
+    
+    def delete_colors(self):
+        for _id in self.color_ids+self.text_ids+self.cover_id:
+            gui.c.delete(_id)
+        
+        self.color_ids.clear()
+        self.text_ids.clear()
+        self.cover_id.clear()
         
 
 class Deck:
@@ -189,12 +239,7 @@ def evaluate_highlight(_card:card.Card):
     if mouse.clicked_this_frame and _card.hand == player_hand:
         if game.wild_card:
             if _card.value in config.get("colored_cards"):
-                _card.dehighlight()
-                game.play(game.wild_card,color=_card.color)
-                game.wild_card = None
-                for item in game.cover:
-                    gui.c.delete(item)
-                game.cover.clear()
+                set_wild_color(_card)
             return
 
         if not game.validate(_card):
@@ -205,6 +250,17 @@ def evaluate_highlight(_card:card.Card):
             return
         
         game.play(_card)
+
+def set_wild_color(_card:card.Card):
+    _card.dehighlight()
+    game.play(game.wild_card,color=_card.color)
+    game.wild_card = None
+    selection.delete_colors()
+
+    for item in game.cover:
+        gui.c.delete(item)
+    game.cover.clear()
+
 
 def game_loop(delta):
     for _card in player_hand.hand[::-1]:
@@ -241,6 +297,8 @@ while start_card.value in config.get("wild_cards"):
     start_card = deck.select_next_card()
 
 game = Game(start_card)
+
+selection = ColorSelection()
 
 gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
 
