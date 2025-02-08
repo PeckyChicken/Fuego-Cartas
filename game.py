@@ -76,18 +76,20 @@ class Game:
 
 
 class ColorSelection:
-    def __init__(self):
+    def __init__(self,width=config.get("window_width"),height=config.get("window_height")):
         self.colors = range(config.get("card_colors"))
         self.cover_id = []
         self.color_ids = []
         self.text_ids = []
         self.visible = False
         self.last_darkened_color = 0
+        self.width = width
+        self.height = height
         
     def render_colors(self,colors=None):
         self.delete_colors()
 
-        self.cover_id.append(gui.c.create_rectangle(0,0,config.get("window_width"),config.get("window_height"),fill=config.get("background_color")))
+        self.cover_id.append(gui.c.create_rectangle(0,0,self.width,self.height,fill=config.get("background_color")))
 
         if colors is None:
             colors = self.colors
@@ -98,14 +100,14 @@ class ColorSelection:
 
         self.margin = config.get("wild_selection_margin")
 
-        self.box_width = (config.get("window_width"))/self.columns - self.margin
-        self.box_height= (config.get("window_height"))/self.rows - self.margin
+        self.box_width = (self.width)/self.columns - self.margin
+        self.box_height= (self.height)/self.rows - self.margin
 
         pixel_width = self.columns*(self.box_width+self.margin) - self.margin
         pixel_height= self.rows*(self.box_height+self.margin) - self.margin
 
-        self.start_x = config.get("window_width")/2 - pixel_width/2
-        self.start_y = config.get("window_height")/2 - pixel_height/2
+        self.start_x = self.width/2 - pixel_width/2
+        self.start_y = self.height/2 - pixel_height/2
 
         font_size = self.box_width // len("#FF0000")
 
@@ -314,8 +316,7 @@ def set_wild_color(*,_card:Optional[card.Card]=None,color:Optional[int]=None):
 def game_loop(delta):
     for _card in player_hand.hand[::-1]:
         if mouse.inside(_card.bounding_box):
-            if not color_selection.visible:
-                check_for_highlight(_card)
+            check_for_highlight(_card)
         else:
             if _card.highlighted:
                 _card.dehighlight()
@@ -362,7 +363,7 @@ while start_card.value in config.get("wild_cards"):
 
 game = Game(start_card)
 
-color_selection = ColorSelection()
+color_selection = ColorSelection(config.get("window_width"),config.get("window_height")*0.75)
 
 gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
 
