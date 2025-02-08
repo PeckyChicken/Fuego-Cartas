@@ -36,6 +36,10 @@ class Point:
         distance = math.sqrt(dx**2+dy**2)
         return distance
 
+    def inside(self,rect: tuple[int]):
+        x1,y1,x2,y2 = rect
+        return x1 <= self.x <= x2 and y1 <= self.y <= y2
+
 class Tileset:
     def __init__(self,image: ImageFile,tile_width,tile_height):
         self.image: ImageFile = image
