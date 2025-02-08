@@ -369,7 +369,7 @@ while start_card.value in config.get("wild_cards"):
 
 game = Game(start_card)
 
-color_selection = ColorSelection(config.get("window_width"),config.get("window_height")*0.75)
+color_selection = ColorSelection(config.get("window_width"),config.get("window_height")*config.get("wild_selection_scale"))
 
 gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
 
