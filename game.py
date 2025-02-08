@@ -142,7 +142,7 @@ class ColorSelection:
         self.clear_darkened_color()
 
         _id = self.color_ids[color]
-        gui.c.itemconfig(_id,fill=imaging.rgb_to_hex(*imaging.red_shift(color,rgb=(191,0,0))))
+        gui.c.itemconfig(_id,fill=imaging.rgb_to_hex(*imaging.red_shift(color,rgb=(255*config.get("highlight_darken_value"),0,0))),outline=config.get("highlight_color"))
 
         self.last_darkened_color = color
 
@@ -151,7 +151,7 @@ class ColorSelection:
             return
         if color is None:
             color = self.last_darkened_color
-        gui.c.itemconfig(self.color_ids[color],fill=imaging.rgb_to_hex(*imaging.red_shift(color)))
+        gui.c.itemconfig(self.color_ids[color],fill=imaging.rgb_to_hex(*imaging.red_shift(color)),outline="black")
 
         self.last_darkened_color = None
     
@@ -281,7 +281,7 @@ def check_for_highlight(hand_card:card.Card):
 
 def evaluate_highlight(_card:card.Card):
     if mouse.clicked_this_frame and _card.hand == player_hand:
-        if game.wild_card and not color_selection.visible:
+        if game.wild_card:
             if _card.value in config.get("colored_cards"):
                 set_wild_color(_card=_card)
             if _card.value in config.get("wild_cards"):
@@ -296,6 +296,12 @@ def evaluate_highlight(_card:card.Card):
             return
         
         game.play(_card)
+        return
+    
+    if color_selection.visible and _card.hand == player_hand:
+        if _card.value in config.get("colored_cards"):
+            color_selection.darken_color(_card.color)
+
 
 def set_wild_color(*,_card:Optional[card.Card]=None,color:Optional[int]=None):
     if (color is None) is (_card is None): # XNOR
