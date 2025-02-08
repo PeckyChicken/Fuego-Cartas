@@ -1,4 +1,4 @@
-#This code was taken from
+#The hueshifting code is taken from StackOverflow user Mark Ransom
 #https://stackoverflow.com/questions/7274221/changing-image-hue-with-python-pil
 
 from math import floor
@@ -55,9 +55,9 @@ def hsv_to_rgb(hsv):
 def rgb_to_hex(r,g,b):
     return f"#{r:02x}{g:02x}{b:02x}".upper()
 
-def red_shift(hue):
-    # Define pure red color in RGB
-    red_rgb = np.array([255, 0, 0, 255], dtype=np.uint8)  # Including alpha channel
+def red_shift(hue,rgb=(255,0,0)):
+    # Define base color in RGB
+    red_rgb = np.array([*rgb, 255], dtype=np.uint8)  # Including alpha channel
     
     # Convert RGB to HSV
     red_hsv = rgb_to_hsv(red_rgb[np.newaxis, np.newaxis, :])  # Expand dims for compatibility
