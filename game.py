@@ -82,6 +82,7 @@ class ColorSelection:
         self.color_ids = []
         self.text_ids = []
         self.visible = False
+        self.last_darkened_color = 0
         
     def render_colors(self,colors=None):
         self.delete_colors()
@@ -131,6 +132,32 @@ class ColorSelection:
             if point.inside(bounding_box):
                 return index
         return None
+
+    def darken_color(self,color):
+        if len(self.color_ids) <= color or color < 0:
+            raise IndexError(f"darken_color: Color index: {color}. Number of colors: {len(self.color_ids)}. Out of range.")
+    
+        self.clear_darkened_color()
+
+        _id = self.color_ids[color]
+        gui.c.itemconfig(_id,fill=imaging.rgb_to_hex(*imaging.red_shift(color,rgb=(191,0,0))))
+
+        self.last_darkened_color = color
+
+    def clear_darkened_color(self,color=None):
+        if self.last_darkened_color is None:
+            return
+        if color is None:
+            color = self.last_darkened_color
+        gui.c.itemconfig(self.color_ids[color],fill=imaging.rgb_to_hex(*imaging.red_shift(color)))
+
+        self.last_darkened_color = None
+    
+    def reset_colors(self):
+        for index,_id in enumerate(self.color_ids):
+            fill_color = imaging.rgb_to_hex(*imaging.red_shift(index))
+            if gui.c.itemcget(_id,"fill") != fill_color:
+                gui.c.itemconfig(_id,fill=fill_color)
     
     def delete_colors(self):
         for _id in self.color_ids+self.text_ids+self.cover_id:
@@ -252,11 +279,11 @@ def check_for_highlight(hand_card:card.Card):
 
 def evaluate_highlight(_card:card.Card):
     if mouse.clicked_this_frame and _card.hand == player_hand:
-        if game.wild_card and not selection.visible:
+        if game.wild_card and not color_selection.visible:
             if _card.value in config.get("colored_cards"):
                 set_wild_color(_card=_card)
             if _card.value in config.get("wild_cards"):
-                selection.render_colors()
+                color_selection.render_colors()
             return
 
         if not game.validate(_card):
@@ -277,7 +304,7 @@ def set_wild_color(*,_card:Optional[card.Card]=None,color:Optional[int]=None):
     
     game.play(game.wild_card,color=color or _card.color)
     game.wild_card = None
-    selection.delete_colors()
+    color_selection.delete_colors()
 
     for item in game.cover:
         gui.c.delete(item)
@@ -287,29 +314,39 @@ def set_wild_color(*,_card:Optional[card.Card]=None,color:Optional[int]=None):
 def game_loop(delta):
     for _card in player_hand.hand[::-1]:
         if mouse.inside(_card.bounding_box):
-            check_for_highlight(_card)
+            if not color_selection.visible:
+                check_for_highlight(_card)
         else:
             if _card.highlighted:
                 _card.dehighlight()
 
-    if mouse.clicked_this_frame and selection.visible:
-        print("mouse.clicked_this_frame and selection.visible")
-        color = selection.pick_color_at_point(mouse)
-        if color is not None:
-            set_wild_color(color=color)
+    if color_selection.visible:
+        color = color_selection.pick_color_at_point(mouse)
+        if color is None:
+            color_selection.clear_darkened_color()
+        else:
+            if mouse.clicked_this_frame:
+                set_wild_color(color=color)
+            else:
+
+                color_selection.darken_color(color)
+        
 
     for _card in card.Card.HIGHLIGHTS:
         evaluate_highlight(_card)
     
     if mouse.inside(deck.next_card.bounding_box) and mouse.clicked_this_frame:
-        _card = deck.select_next_card()
-        _card.add_to_hand(player_hand)
-        _card.fix_image()
-        player_hand.sort()
+        pickup_next_card()
     
     mouse.clicked_this_frame = False
 
     gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
+
+def pickup_next_card():
+    _card = deck.select_next_card()
+    _card.add_to_hand(player_hand)
+    _card.fix_image()
+    player_hand.sort()
 
 for _ in range(9):
     _card = deck.select_next_card()
@@ -325,7 +362,7 @@ while start_card.value in config.get("wild_cards"):
 
 game = Game(start_card)
 
-selection = ColorSelection()
+color_selection = ColorSelection()
 
 gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
 
