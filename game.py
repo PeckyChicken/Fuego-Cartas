@@ -95,24 +95,29 @@ class ColorSelection:
             colors = self.colors
         
         
-        height = config.get("wild_selection_rows")
-        width = len(colors)//height
+        rows = config.get("wild_selection_rows")
+        columns = len(colors)//rows
 
-        box_width = config.get("wild_selection_size")[0]
-        box_height= config.get("wild_selection_size")[1]
+        margin = config.get("wild_selection_margin")
 
-        pixel_width = width*(box_width+config.get("wild_selection_margin")) - config.get("wild_selection_margin")
-        pixel_height= height*(box_height+config.get("wild_selection_margin"))-config.get("wild_selection_margin")
+        box_width = (config.get("window_width"))/columns - margin
+        box_height= (config.get("window_height"))/rows - margin
+        print(box_width,box_height)
+
+        pixel_width = columns*(box_width+margin) - margin
+        pixel_height= rows*(box_height+margin) - margin
 
         start_x = config.get("window_width")/2 - pixel_width/2
         start_y = config.get("window_height")/2 - pixel_height/2
 
+        font_size = box_width // len("FF0000")
+
         _font = game.wild_font.copy()
-        _font["size"] = config.get("wild_selection_font_size")
+        _font["size"] = int(font_size)
 
         for index,color in enumerate(colors):
-            x = start_x + (index%width)*(box_width+config.get("wild_selection_margin"))
-            y = start_y + (index//width)*(box_height+config.get("wild_selection_margin"))
+            x = start_x + (index%columns)*(box_width+config.get("wild_selection_margin"))
+            y = start_y + (index//columns)*(box_height+config.get("wild_selection_margin"))
             fill_color = imaging.rgb_to_hex(*imaging.red_shift(color))
             self.color_ids.append(gui.c.create_rectangle(x,y,x+box_width,y+box_height,fill=fill_color))
             self.text_ids.append(gui.c.create_text(x+box_width/2,y+box_height/2,text=fill_color,font=_font,fill="white"))
