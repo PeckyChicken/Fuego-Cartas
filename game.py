@@ -73,7 +73,6 @@ class Game:
         self.cover.append(gui.c.create_text(config.get("window_width")*config.get("wild_text_placement")[0],config.get("window_height")*config.get("wild_text_placement")[1],text="Select color for Wild Card.",font=self.wild_font,fill="white"))
 
         player_hand.render_hand()
-        selection.render_colors()
 
 
 class ColorSelection:
@@ -256,6 +255,8 @@ def evaluate_highlight(_card:card.Card):
         if game.wild_card and not selection.visible:
             if _card.value in config.get("colored_cards"):
                 set_wild_color(_card=_card)
+            if _card.value in config.get("wild_cards"):
+                selection.render_colors()
             return
 
         if not game.validate(_card):
