@@ -13,16 +13,13 @@ player_hand = hand.Hand((config.get("window_width")/2,config.get("hand_y_pos")*c
 
 FRAME_TIME = 1000//config.get("fps")
 
-class Cursor:
+class Cursor(gui.Point):
     def __init__(self):
         self.x = 0
         self.y = 0
         self.clicked = False
         self.clicked_this_frame = False
-        self.button = None
-
-    def inside(self,bounding_box):
-        return (bounding_box[0] < self.x < bounding_box[2]) and (bounding_box[1] < self.y < bounding_box[3])
+        self.button = None    
     
 mouse = Cursor()
 
@@ -75,8 +72,8 @@ class Game:
         self.cover.append(gui.c.create_image(config.get("window_width")/2,config.get("window_height")/2,image=gui.cover))
         self.cover.append(gui.c.create_text(config.get("window_width")*config.get("wild_text_placement")[0],config.get("window_height")*config.get("wild_text_placement")[1],text="Select color for Wild Card.",font=self.wild_font,fill="white"))
 
-        selection.render_colors()
         player_hand.render_hand()
+        selection.render_colors()
 
 
 class ColorSelection:
@@ -85,6 +82,7 @@ class ColorSelection:
         self.cover_id = []
         self.color_ids = []
         self.text_ids = []
+        self.visible = False
         
     def render_colors(self,colors=None):
         self.delete_colors()
@@ -95,33 +93,45 @@ class ColorSelection:
             colors = self.colors
         
         
-        rows = config.get("wild_selection_rows")
-        columns = len(colors)//rows
+        self.rows = config.get("wild_selection_rows")
+        self.columns = len(colors)//self.rows
 
-        margin = config.get("wild_selection_margin")
+        self.margin = config.get("wild_selection_margin")
 
-        box_width = (config.get("window_width"))/columns - margin
-        box_height= (config.get("window_height"))/rows - margin
-        print(box_width,box_height)
+        self.box_width = (config.get("window_width"))/self.columns - self.margin
+        self.box_height= (config.get("window_height"))/self.rows - self.margin
 
-        pixel_width = columns*(box_width+margin) - margin
-        pixel_height= rows*(box_height+margin) - margin
+        pixel_width = self.columns*(self.box_width+self.margin) - self.margin
+        pixel_height= self.rows*(self.box_height+self.margin) - self.margin
 
-        start_x = config.get("window_width")/2 - pixel_width/2
-        start_y = config.get("window_height")/2 - pixel_height/2
+        self.start_x = config.get("window_width")/2 - pixel_width/2
+        self.start_y = config.get("window_height")/2 - pixel_height/2
 
-        font_size = box_width // len("FF0000")
+        font_size = self.box_width // len("#FF0000")
 
         _font = game.wild_font.copy()
         _font["size"] = int(font_size)
 
         for index,color in enumerate(colors):
-            x = start_x + (index%columns)*(box_width+config.get("wild_selection_margin"))
-            y = start_y + (index//columns)*(box_height+config.get("wild_selection_margin"))
+            x = self.start_x + (index%self.columns)*(self.box_width+self.margin)
+            y = self.start_y + (index//self.columns)*(self.box_height+self.margin)
             fill_color = imaging.rgb_to_hex(*imaging.red_shift(color))
-            self.color_ids.append(gui.c.create_rectangle(x,y,x+box_width,y+box_height,fill=fill_color))
-            self.text_ids.append(gui.c.create_text(x+box_width/2,y+box_height/2,text=fill_color,font=_font,fill="white"))
+            self.color_ids.append(gui.c.create_rectangle(x,y,x+self.box_width,y+self.box_height,fill=fill_color))
+            self.text_ids.append(gui.c.create_text(x+self.box_width/2,y+self.box_height/2,text=fill_color,font=_font,fill="white"))
         
+        self.visible = True
+    
+    def pick_color_at_point(self,point:gui.Point):
+        for index,_ in enumerate(self.color_ids):
+            x1 = self.start_x + (index%self.columns)*(self.box_width+self.margin)
+            x2 = x1 + self.box_width
+            y1 = self.start_y + (index//self.columns)*(self.box_height+self.margin)
+            y2 = y1 + self.box_height
+
+            bounding_box = (x1,y1,x2,y2)
+            if point.inside(bounding_box):
+                return index
+        return None
     
     def delete_colors(self):
         for _id in self.color_ids+self.text_ids+self.cover_id:
@@ -130,6 +140,8 @@ class ColorSelection:
         self.color_ids.clear()
         self.text_ids.clear()
         self.cover_id.clear()
+
+        self.visible = False
         
 
 class Deck:
@@ -202,8 +214,7 @@ class Deck:
 deck = Deck()
 
 def mouse_motion(event):
-    mouse.x = event.x
-    mouse.y = event.y
+    mouse.set_coords(event.x,event.y)
 
 def mouse_click(event):
     mouse.clicked = True
@@ -242,9 +253,9 @@ def check_for_highlight(hand_card:card.Card):
 
 def evaluate_highlight(_card:card.Card):
     if mouse.clicked_this_frame and _card.hand == player_hand:
-        if game.wild_card:
+        if game.wild_card and not selection.visible:
             if _card.value in config.get("colored_cards"):
-                set_wild_color(_card)
+                set_wild_color(_card=_card)
             return
 
         if not game.validate(_card):
@@ -256,9 +267,14 @@ def evaluate_highlight(_card:card.Card):
         
         game.play(_card)
 
-def set_wild_color(_card:card.Card):
-    _card.dehighlight()
-    game.play(game.wild_card,color=_card.color)
+def set_wild_color(*,_card:Optional[card.Card]=None,color:Optional[int]=None):
+    if (color is None) is (_card is None): # XNOR
+        raise ValueError("set_wild_color: Exactly 1 of _card and color must be provided.")
+    
+    if _card is not None:
+        _card.dehighlight()
+    
+    game.play(game.wild_card,color=color or _card.color)
     game.wild_card = None
     selection.delete_colors()
 
@@ -274,7 +290,13 @@ def game_loop(delta):
         else:
             if _card.highlighted:
                 _card.dehighlight()
-    
+
+    if mouse.clicked_this_frame and selection.visible:
+        print("mouse.clicked_this_frame and selection.visible")
+        color = selection.pick_color_at_point(mouse)
+        if color is not None:
+            set_wild_color(color=color)
+
     for _card in card.Card.HIGHLIGHTS:
         evaluate_highlight(_card)
     
@@ -284,8 +306,7 @@ def game_loop(delta):
         _card.fix_image()
         player_hand.sort()
     
-    if mouse.clicked_this_frame:
-        mouse.clicked_this_frame = False
+    mouse.clicked_this_frame = False
 
     gui.window.after(FRAME_TIME,lambda: game_loop(FRAME_TIME))
 
