@@ -39,6 +39,8 @@ class Card:
 
         if self.face_up:
             self.id[1] = gui.c.create_text(*self.get_text_coords(self.x,self.y),font=self.font,text=self.hex_code,fill="white")
+        
+        self.move_to(self.x,self.y,False)
     
     def get_text_coords(self,x,y):
         if self.value in config.get("wild_cards"):
@@ -144,6 +146,14 @@ class Card:
             y = self.y + config.get("highlight_movement")
             self.smooth_move_to(x,y,100/config.get("game_speed"),easing=0.5)
             self.highlighted = False
+    
+    def edit(self,color=None,value=None):
+        if color:
+            self.color = color
+        if value:
+            self.value = value
+        self._get_image(self.color,self.value)
+        self.rerender()
 
     def get_hand_position(self):
         if not self.hand:
