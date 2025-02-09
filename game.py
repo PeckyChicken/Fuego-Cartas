@@ -73,6 +73,11 @@ class Game:
         self.cover.append(gui.c.create_text(config.get("window_width")*config.get("wild_text_placement")[0],config.get("window_height")*config.get("wild_text_placement")[1],text="Select color for Wild Card.",font=self.wild_font,fill="white"))
 
         player_hand.render_hand()
+    
+    def hovered_color(self,color):
+        if self.wild_card and self.wild_card.color != color:
+            
+            self.wild_card.edit(color=color)
 
 
 class ColorSelection:
@@ -284,8 +289,12 @@ def evaluate_highlight(_card:card.Card):
         if game.wild_card:
             if _card.value in config.get("colored_cards"):
                 set_wild_color(_card=_card)
+            
             if _card.value in config.get("wild_cards"):
-                color_selection.render_colors()
+                if color_selection.visible:
+                    color_selection.delete_colors()
+                else:
+                    color_selection.render_colors()
             return
 
         if not game.validate(_card):
@@ -298,9 +307,18 @@ def evaluate_highlight(_card:card.Card):
         game.play(_card)
         return
     
+    
     if color_selection.visible and _card.hand == player_hand:
         if _card.value in config.get("colored_cards"):
             color_selection.darken_color(_card.color)
+        game.hovered_color(_card.color)
+    
+    if game.wild_card and _card.hand == player_hand:
+        game.hovered_color(_card.color)
+    
+    if _card == game.wild_card:
+        game.hovered_color(-1)
+
 
 
 def set_wild_color(*,_card:Optional[card.Card]=None,color:Optional[int]=None):
@@ -335,8 +353,9 @@ def game_loop(delta):
             if mouse.clicked_this_frame:
                 set_wild_color(color=color)
             else:
-
                 color_selection.darken_color(color)
+                game.hovered_color(color)
+
         
 
     for _card in card.Card.HIGHLIGHTS:
